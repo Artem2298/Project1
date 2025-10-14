@@ -16,7 +16,6 @@ private:
     int windowHeight;
     const char* windowTitle;
 
-    //std::unique_ptr<Scene> scene;
     SceneManager sceneManager;
     std::unique_ptr<ShaderProgram> shaderProgram;
 
@@ -44,7 +43,6 @@ public:
     void shutdown();
 
     GLFWwindow* getWindow() const { return window; }
-    //Scene* getScene() const { return scene.get(); }
     SceneManager& getSceneManager() { return sceneManager; }
     ShaderProgram* getShaderProgram() const { return shaderProgram.get(); }
     bool isOpen() const { return !glfwWindowShouldClose(window); }

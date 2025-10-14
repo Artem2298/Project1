@@ -9,7 +9,6 @@ class Scene
 {
 private:
     std::vector<std::unique_ptr<DrawableObject>> objects;
-
     glm::mat4 viewMatrix;
     glm::mat4 projectionMatrix;
 

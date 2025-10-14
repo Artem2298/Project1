@@ -3,7 +3,9 @@
 #include "Square.h"
 #include "Plane.h"
 #include "TranslateTransform.h"
+#include "DynamicRotateTransform.h"
 #include "SceneManager.h"
+#include "ModelLoader.h"
 #include <iostream>
 #include <glm/vec3.hpp>
 
@@ -41,6 +43,8 @@ void Application::key_callback(GLFWwindow* window, int key, int scancode, int ac
             s_instance->getSceneManager().switchScene(1);
         else if (key == GLFW_KEY_2)
             s_instance->getSceneManager().switchScene(2);
+        else if (key == GLFW_KEY_3)
+            s_instance->getSceneManager().switchScene(3);
     }
 }
 
@@ -151,23 +155,37 @@ void Application::setupScene()
         glm::vec3(0, 0, 0),
         glm::vec3(0, 1, 0)
     );
+
     float aspect = windowWidth / (float)windowHeight;
     glm::mat4 projection1 = glm::perspective(45.0f, aspect, 0.1f, 100.0f);
+
     scene1->setViewMatrix(view1);
     scene1->setProjectionMatrix(projection1);
 
-    Triangle* triangle1 = new Triangle();
-    scene1->addObject(triangle1);
+    DrawableObject* triangle1 = new DrawableObject(true);
+    if (triangle1->loadModel("models/triangle.h", "triangle")) {
+        triangle1->addDynamicTransform(new DynamicRotateTransform(glm::vec3(0, 1, 0), 50.0f));
+        triangle1->addStaticTransform(new TranslateTransform(glm::vec3(-0.5f, 0.5f, 0.0f)));
+        scene1->addObject(triangle1);
+    }
 
-    Square* square = new Square();
-    scene1->addObject(square);
+    DrawableObject* square = new DrawableObject(false);
+    if (square->loadModel("models/square.h", "square")) {
+        square->addStaticTransform(new TranslateTransform(glm::vec3(0.5f, 0.5f, 0.0f)));
+        scene1->addObject(square);
+    }
 
-    Triangle* triangle2 = new Triangle();
-    triangle2->addStaticTransform(new TranslateTransform(glm::vec3(0.0f, 1.0f, 0.0f)));
-    scene1->addObject(triangle2);
+    DrawableObject* triangle2 = new DrawableObject(true);
+    if (triangle2->loadModel("models/triangle.h", "triangle")) {
+        triangle2->addDynamicTransform(new DynamicRotateTransform(glm::vec3(0, 1, 0), 30.0f));
+        triangle2->addStaticTransform(new TranslateTransform(glm::vec3(0.0f, 1.0f, 0.0f)));
+        scene1->addObject(triangle2);
+    }
 
-    Plane* plane = new Plane();
-    scene1->addObject(plane);
+    DrawableObject* plane = new DrawableObject(false);
+    if (plane->loadModel("models/plane.h", "plane")) {
+        scene1->addObject(plane);
+    }
 
     printf("Scene 1 setup complete. Objects in scene: %zu\n", scene1->getObjectCount());
 
@@ -175,22 +193,60 @@ void Application::setupScene()
     sceneManager.addScene(2, scene2);
 
     glm::mat4 view2 = glm::lookAt(
-        glm::vec3(0, 2, 3),
+        glm::vec3(0, 1, 2),
         glm::vec3(0, 0, 0),
         glm::vec3(0, 1, 0)
     );
+
     glm::mat4 projection2 = glm::perspective(60.0f, aspect, 0.1f, 100.0f);
-    scene2->setViewMatrix(view1);
-    scene2->setProjectionMatrix(projection1);
 
-    Triangle* triangle3 = new Triangle();
-    triangle3->addDynamicTransform(new DynamicRotateTransform(glm::vec3(0.0f, 1.0f, 0.0f), 30.0f));
-    scene2->addObject(triangle3);
+    scene2->setViewMatrix(view2);
+    scene2->setProjectionMatrix(projection2);
 
-    Plane* plane2 = new Plane();
-    scene2->addObject(plane2);
+    DrawableObject* triangle3 = new DrawableObject(true);
+    if (triangle3->loadModel("models/triangle.h", "triangle")) {
+        triangle3->addDynamicTransform(new DynamicRotateTransform(glm::vec3(0, 1, 0), 30.0f));
+        scene2->addObject(triangle3);
+    }
+
+    DrawableObject* plane2 = new DrawableObject(false);
+    if (plane2->loadModel("models/plane.h", "plane")) {
+        scene2->addObject(plane2);
+    }
 
     printf("Scene 2 setup complete. Objects in scene: %zu\n", scene2->getObjectCount());
+
+    Scene* scene3 = new Scene();
+    sceneManager.addScene(3, scene3);
+
+    glm::mat4 view3 = glm::lookAt(
+        glm::vec3(5, 3, 5),
+        glm::vec3(0, 0, 0),
+        glm::vec3(0, 1, 0)
+    );
+
+    glm::mat4 projection3 = glm::perspective(45.0f, aspect, 0.1f, 100.0f);
+
+    scene3->setViewMatrix(view3);
+    scene3->setProjectionMatrix(projection3);
+
+    for (int i = 0; i < 10; i++) {
+        DrawableObject* triangle = new DrawableObject(true);
+        if (triangle->loadModel("models/triangle.h", "triangle")) {
+            float angle = (360.0f / 10.0f) * i;
+            float radius = 2.0f;
+            float x = radius * glm::cos(glm::radians(angle));
+            float z = radius * glm::sin(glm::radians(angle));
+            float y = glm::sin(glm::radians(angle * 2.0f)) * 0.5f;
+
+            triangle->addStaticTransform(new TranslateTransform(glm::vec3(x, y, z)));
+            triangle->addDynamicTransform(new DynamicRotateTransform(glm::vec3(1, 1, 0), 30.0f + i * 5.0f));
+
+            scene3->addObject(triangle);
+        }
+    }
+
+    printf("Scene 3 setup complete. Objects in scene: %zu\n", scene3->getObjectCount());
 
     sceneManager.switchScene(1);
 }
