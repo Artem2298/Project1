@@ -9,30 +9,22 @@ class DrawableObject
 protected:
     Model model;
     Transformation transform;
-    glm::vec3 color;
 
 public:
-    DrawableObject();
+    DrawableObject(bool isDynamic = false);
     virtual ~DrawableObject();
 
     virtual void update(float deltaTime);
     virtual void draw(ShaderProgram& shader);
 
-    void setPosition(const glm::vec3& pos) { transform.setPosition(pos); }
-    void translate(const glm::vec3& offset) { transform.translate(offset); }
-    glm::vec3 getPosition() const { return transform.getPosition(); }
+    void addStaticTransform(ITransformComponent* component);
+    void addDynamicTransform(ITransformComponent* component);
 
-    void setRotation(const glm::vec3& rot) { transform.setRotation(rot); }
-    void rotate(const glm::vec3& axis, float angle) { transform.rotate(axis, angle); }
-    glm::vec3 getRotation() const { return transform.getRotation(); }
-
-    void setScale(const glm::vec3& s) { transform.setScale(s); }
-    void applyScale(const glm::vec3& s) { transform.applyScale(s); }
-    glm::vec3 getScale() const { return transform.getScale(); }
-
-    void setColor(const glm::vec3& c) { color = c; }
-    glm::vec3 getColor() const { return color; }
+    Transformation& getTransformation() { return transform; }
+    const Transformation& getTransformation() const { return transform; }
 
     Model& getModel() { return model; }
-    Transformation& getTransformation() { return transform; }
+    const Model& getModel() const { return model; }
+
+    glm::mat4 getModelMatrix() const { return transform.getMatrix(); }
 };

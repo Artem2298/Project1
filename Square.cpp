@@ -2,19 +2,25 @@
 
 Square::Square()
 {
-    float squareVertices[] = {
-        -0.5f,  0.5f, 0.0f,
-         0.5f,  0.5f, 0.0f,
-        -0.5f, -0.5f, 0.0f,
+    const float squareVertices[72] = {
+        -0.5f,  0.5f, 0.0f,  0.0f, 0.0f, 1.0f,
+         0.5f,  0.5f, 0.0f,  0.0f, 0.0f, 1.0f,
+        -0.5f, -0.5f, 0.0f,  0.0f, 0.0f, 1.0f,
 
-         0.5f,  0.5f, 0.0f,
-         0.5f, -0.5f, 0.0f,
-        -0.5f, -0.5f, 0.0f
+         0.5f,  0.5f, 0.0f,  1.0f, 0.0f, 0.0f,
+         0.5f, -0.5f, 0.0f,  0.0f, 1.0f, 0.0f,
+        -0.5f, -0.5f, 0.0f,  1.0f, 1.0f, 0.0f,
+
+        -0.5f,  0.5f, 0.0f,  0.5f, 0.5f, 1.0f,
+         0.5f,  0.5f, 0.0f,  0.5f, 0.5f, 0.5f,
+        -0.5f, -0.5f, 0.0f,  0.0f, 0.5f, 0.5f,
+
+         0.5f,  0.5f, 0.0f,  1.0f, 0.5f, 0.5f,
+         0.5f, -0.5f, 0.0f,  0.5f, 1.0f, 0.5f,
+        -0.5f, -0.5f, 0.0f,  0.5f, 0.5f, 1.0f
     };
 
-    model.load(squareVertices, 6);
-
-    color = glm::vec3(0.0f, 0.5f, 1.0f);
+    model.loadWithStride(squareVertices, 12, 6);
 }
 
 Square::~Square()

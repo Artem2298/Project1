@@ -1,10 +1,10 @@
 #pragma once
 #include "DrawableObject.h"
 
-class Square : public DrawableObject
+class Plane : public DrawableObject
 {
 public:
-    Square();
-    ~Square();
+    Plane();
+    ~Plane();
     void update(float deltaTime) override;
 };

@@ -5,6 +5,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <memory>
 #include "Scene.h"
+#include "SceneManager.h"
 #include "ShaderProgram.h"
 
 class Application
@@ -15,7 +16,8 @@ private:
     int windowHeight;
     const char* windowTitle;
 
-    std::unique_ptr<Scene> scene;
+    //std::unique_ptr<Scene> scene;
+    SceneManager sceneManager;
     std::unique_ptr<ShaderProgram> shaderProgram;
 
     bool isRunning;
@@ -24,7 +26,7 @@ private:
     bool initGLFW();
     bool initGLEW();
     bool loadShaders(const char* vertexPath, const char* fragmentPath);
-    void setupScene();
+    void setupScene(); 
     void printSystemInfo();
 
     static void error_callback(int error, const char* description);
@@ -42,7 +44,8 @@ public:
     void shutdown();
 
     GLFWwindow* getWindow() const { return window; }
-    Scene* getScene() const { return scene.get(); }
+    //Scene* getScene() const { return scene.get(); }
+    SceneManager& getSceneManager() { return sceneManager; }
     ShaderProgram* getShaderProgram() const { return shaderProgram.get(); }
     bool isOpen() const { return !glfwWindowShouldClose(window); }
 

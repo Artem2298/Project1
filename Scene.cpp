@@ -63,8 +63,8 @@ void Scene::render(ShaderProgram& shader)
 {
     shader.use();
 
-    shader.setUniformMatrix4f("view", viewMatrix);
-    shader.setUniformMatrix4f("projection", projectionMatrix);
+    shader.setUniform("view", viewMatrix);
+    shader.setUniform("projection", projectionMatrix);
 
     for (auto& obj : objects)
     {

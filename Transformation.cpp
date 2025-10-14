@@ -1,116 +1,43 @@
 #include "Transformation.h"
-#include <glm/gtc/type_ptr.hpp>
-#include <glm/gtx/euler_angles.hpp>
-#include <glm/gtx/quaternion.hpp>
-#include <cmath>
 
-Transformation::Transformation()
-    : position(0.0f, 0.0f, 0.0f),
-    rotation(0.0f, 0.0f, 0.0f),
-    scaleValue(1.0f, 1.0f, 1.0f),
-    matrix(1.0f),
-    isDirty(true)
+Transformation::Transformation(bool isDynamic)
+    : useDynamic(isDynamic)
 {
+    dynamicComponent = std::make_unique<DynamicTransformComponent>();
+    staticComponent = std::make_unique<StaticTransformComponent>();
 }
 
 Transformation::~Transformation()
 {
 }
 
-void Transformation::updateMatrix()
+void Transformation::addDynamic(ITransformComponent* component)
 {
-    matrix = glm::mat4(1.0f);
-
-    matrix = glm::translate(matrix, position);
-
-    float radX = glm::radians(rotation.x);  // pitch
-    float radY = glm::radians(rotation.y);  // yaw
-    float radZ = glm::radians(rotation.z);  // roll
-
-    matrix = glm::rotate(matrix, radY, glm::vec3(0.0f, 1.0f, 0.0f));  // yaw
-    matrix = glm::rotate(matrix, radX, glm::vec3(1.0f, 0.0f, 0.0f));  // pitch
-    matrix = glm::rotate(matrix, radZ, glm::vec3(0.0f, 0.0f, 1.0f));  // roll
-
-    matrix = glm::scale(matrix, scaleValue);
-
-    isDirty = false;
+    if (component)
+    {
+        dynamicComponent->add(component);
+        useDynamic = true;
+    }
 }
 
-void Transformation::setPosition(const glm::vec3& pos)
+void Transformation::addStatic(ITransformComponent* component)
 {
-    position = pos;
-    isDirty = true;
+    if (component)
+    {
+        staticComponent->add(component);
+    }
 }
 
-void Transformation::translate(const glm::vec3& offset)
+glm::mat4 Transformation::getMatrix() const
 {
-    position += offset;
-    isDirty = true;
+    glm::mat4 result = glm::mat4(1.0f);
+    result = result * staticComponent->getMatrix();
+    result = result * dynamicComponent->getMatrix();
+    return result;
 }
 
-void Transformation::setRotation(const glm::vec3& rot)
+void Transformation::update(float deltaTime)
 {
-    rotation = rot;
-    isDirty = true;
-}
-
-void Transformation::rotate(const glm::vec3& axis, float angle)
-{
-    glm::mat4 rotMatrix = glm::rotate(glm::mat4(1.0f), glm::radians(angle), axis);
-
-    if (axis.x > 0.5f)
-        rotation.x += angle;
-    else if (axis.y > 0.5f)
-        rotation.y += angle;
-    else if (axis.z > 0.5f)
-        rotation.z += angle;
-
-    isDirty = true;
-}
-
-void Transformation::setScale(const glm::vec3& s)
-{
-    scaleValue = s;
-    isDirty = true;
-}
-
-void Transformation::applyScale(const glm::vec3& s)
-{
-    scaleValue *= s;
-    isDirty = true;
-}
-
-glm::mat4 Transformation::getMatrix()
-{
-    if (isDirty)
-        updateMatrix();
-
-    return matrix;
-}
-
-void Transformation::reset()
-{
-    position = glm::vec3(0.0f);
-    rotation = glm::vec3(0.0f);
-    scaleValue = glm::vec3(1.0f);
-    matrix = glm::mat4(1.0f);
-    isDirty = false;
-}
-
-glm::vec3 Transformation::getForward() const
-{
-    glm::mat4 m = const_cast<Transformation*>(this)->getMatrix();
-    return -glm::normalize(glm::vec3(m[2]));
-}
-
-glm::vec3 Transformation::getRight() const
-{
-    glm::mat4 m = const_cast<Transformation*>(this)->getMatrix();
-    return glm::normalize(glm::vec3(m[0]));
-}
-
-glm::vec3 Transformation::getUp() const
-{
-    glm::mat4 m = const_cast<Transformation*>(this)->getMatrix();
-    return glm::normalize(glm::vec3(m[1]));
+    dynamicComponent->update(deltaTime);
+    staticComponent->update(deltaTime);
 }

@@ -9,7 +9,8 @@ class Model
 private:
     GLuint VAO;           
     GLuint VBO;           
-    GLuint vertexCount;   
+    GLuint vertexCount;
+    GLuint stride;
     bool isLoaded;        
 
 public:
@@ -19,6 +20,8 @@ public:
     void load(const float* vertices, unsigned int vertexCount);
 
     void load(const std::vector<glm::vec3>& vertices);
+
+    void loadWithStride(const float* vertices, unsigned int vertexCount, GLuint vertexSize);
 
     void draw() const;
 

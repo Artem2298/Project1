@@ -1,10 +1,14 @@
 #version 330 core
 
-out vec4 fragColor;
+in vec3 vertexNormal;
+in vec3 vertexPosition;
 
-uniform vec3 color;
+out vec4 fragColor;
 
 void main()
 {
-    fragColor = vec4(color, 1.0);
+    vec3 normalizedNormal = normalize(vertexNormal);
+    vec3 normalAsColor = normalizedNormal * 0.5 + 0.5;
+    
+    fragColor = vec4(normalAsColor, 1.0);
 }

@@ -1,7 +1,7 @@
 #include "DrawableObject.h"
 
-DrawableObject::DrawableObject()
-    : color(1.0f, 1.0f, 1.0f)
+DrawableObject::DrawableObject(bool isDynamic)
+    : transform(isDynamic)
 {
 }
 
@@ -11,15 +11,22 @@ DrawableObject::~DrawableObject()
 
 void DrawableObject::update(float deltaTime)
 {
-
+    transform.update(deltaTime);
 }
 
 void DrawableObject::draw(ShaderProgram& shader)
 {
     shader.use();
-
-    shader.setUniformMatrix4f("model", transform.getMatrix());
-    shader.setUniform3f("color", color.x, color.y, color.z);
-
+    shader.setUniform("model", transform.getMatrix());
     model.draw();
+}
+
+void DrawableObject::addStaticTransform(ITransformComponent* component)
+{
+    transform.addStatic(component);
+}
+
+void DrawableObject::addDynamicTransform(ITransformComponent* component)
+{
+    transform.addDynamic(component);
 }

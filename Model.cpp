@@ -1,7 +1,7 @@
 #include "Model.h"
 
 Model::Model()
-    : VAO(0), VBO(0), vertexCount(0), isLoaded(false)
+    : VAO(0), VBO(0), vertexCount(0), stride(3), isLoaded(false)
 {
 }
 
@@ -10,37 +10,57 @@ Model::~Model()
     cleanup();
 }
 
-void Model::load(const float* vertices, unsigned int count)
+void Model::loadWithStride(const float* vertices, unsigned int vertexCount, GLuint vertexSize)
 {
-    if (!vertices || count == 0)
+    if (!vertices || vertexCount == 0 || vertexSize == 0)
     {
-        std::cerr << "ERROR: Invalid vertices or count = 0\n";
+        std::cerr << "ERROR: Invalid vertices, vertexCount, or vertexSize\n";
         return;
     }
 
     if (isLoaded)
         cleanup();
 
-    vertexCount = count;
+    this->vertexCount = vertexCount;
+    this->stride = vertexSize;
+
+    GLuint totalFloats = vertexCount * vertexSize;
 
     glGenBuffers(1, &VBO);
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
-
-    glBufferData(GL_ARRAY_BUFFER, count * 3 * sizeof(float), vertices, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, totalFloats * sizeof(float), vertices, GL_STATIC_DRAW);
 
     glGenVertexArrays(1, &VAO);
     glBindVertexArray(VAO);
 
+    GLuint strideBytes = vertexSize * sizeof(float);
+
     glEnableVertexAttribArray(0);
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, strideBytes, (GLvoid*)0);
 
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, NULL);
+    if (vertexSize >= 6)
+    {
+        glEnableVertexAttribArray(1);
+        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, strideBytes, (GLvoid*)(3 * sizeof(float)));
+    }
+
+    if (vertexSize >= 8)
+    {
+        glEnableVertexAttribArray(2);
+        glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, strideBytes, (GLvoid*)(6 * sizeof(float)));
+    }
 
     glBindVertexArray(0);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 
     isLoaded = true;
-    std::cout << "Model loaded successfully: " << count << " vertices\n";
+    std::cout << "Model loaded with stride " << vertexSize << ": " << vertexCount << " vertices\n";
+}
+
+void Model::load(const float* vertices, unsigned int vertexCount)
+{
+    loadWithStride(vertices, vertexCount, 3);
 }
 
 void Model::load(const std::vector<glm::vec3>& vertices)
@@ -91,6 +111,7 @@ void Model::cleanup()
     }
 
     vertexCount = 0;
+    stride = 3;
     isLoaded = false;
     std::cout << "Model cleaned up\n";
 }

@@ -78,14 +78,12 @@ bool ShaderLoader::checkProgramLinking()
 
 bool ShaderLoader::loadShader(const std::string& vertexPath, const std::string& fragmentPath)
 {
-    // Читаем содержимое файлов
     std::string vertexSource = readFile(vertexPath);
     std::string fragmentSource = readFile(fragmentPath);
 
     if (vertexSource.empty() || fragmentSource.empty())
         return false;
 
-    // Создаём и компилируем шейдеры
     Shader vertexShader(GL_VERTEX_SHADER, vertexSource);
     if (!checkShaderCompilation(vertexShader.getID(), "Vertex Shader"))
         return false;
@@ -94,13 +92,11 @@ bool ShaderLoader::loadShader(const std::string& vertexPath, const std::string& 
     if (!checkShaderCompilation(fragmentShader.getID(), "Fragment Shader"))
         return false;
 
-    // Создаём программу
     shaderProgramID = glCreateProgram();
     glAttachShader(shaderProgramID, vertexShader.getID());
     glAttachShader(shaderProgramID, fragmentShader.getID());
     glLinkProgram(shaderProgramID);
 
-    // Проверяем линковку
     if (!checkProgramLinking())
         return false;
 
