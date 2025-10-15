@@ -193,17 +193,46 @@ void Application::setupScene()
     sceneManager.addScene(2, scene2);
 
     glm::mat4 view2 = glm::lookAt(
-        glm::vec3(0, 1, 2),
+        glm::vec3(0, 0, -7),
         glm::vec3(0, 0, 0),
         glm::vec3(0, 1, 0)
     );
 
-    glm::mat4 projection2 = glm::perspective(60.0f, aspect, 0.1f, 100.0f);
+    glm::mat4 projection2 = glm::perspective(45.0f, aspect, 0.1f, 100.0f);
 
     scene2->setViewMatrix(view2);
     scene2->setProjectionMatrix(projection2);
 
-    DrawableObject* triangle3 = new DrawableObject(true);
+    DrawableObject* sphere1 = new DrawableObject(true);
+    if (sphere1->loadModel("models/sphere.h", "sphere")) {
+        sphere1->addStaticTransform(new TranslateTransform(glm::vec3(3, 0, 0)));
+        scene2->addObject(sphere1);
+    }
+
+    DrawableObject* sphere2 = new DrawableObject(true);
+    if (sphere2->loadModel("models/sphere.h", "sphere")) {
+        sphere2->addStaticTransform(new TranslateTransform(glm::vec3(-3, 0, 0)));
+        scene2->addObject(sphere2);
+    }
+
+    DrawableObject* sphere3 = new DrawableObject(true);
+    if (sphere3->loadModel("models/sphere.h", "sphere")) {
+        sphere3->addStaticTransform(new TranslateTransform(glm::vec3(0, 3, 0)));
+        scene2->addObject(sphere3);
+    }
+
+    DrawableObject* sphere4 = new DrawableObject(true);
+    if (sphere4->loadModel("models/sphere.h", "sphere")) {
+        sphere4->addStaticTransform(new TranslateTransform(glm::vec3(0, -3, 0)));
+        scene2->addObject(sphere4);
+    }
+
+    //sphere1->addStaticTransform(new TranslateTransform(glm::vec3(2, 0, 0)));
+    //sphere2->addStaticTransform(new TranslateTransform(glm::vec3(-2, 0, 0)));
+    //sphere3->addStaticTransform(new TranslateTransform(glm::vec3(0, 2, 0)));
+    //sphere4->addStaticTransform(new TranslateTransform(glm::vec3(0, -2, 0)));
+
+    /*DrawableObject* triangle3 = new DrawableObject(true);
     if (triangle3->loadModel("models/triangle.h", "triangle")) {
         triangle3->addDynamicTransform(new DynamicRotateTransform(glm::vec3(0, 1, 0), 30.0f));
         scene2->addObject(triangle3);
@@ -212,7 +241,7 @@ void Application::setupScene()
     DrawableObject* plane2 = new DrawableObject(false);
     if (plane2->loadModel("models/plane.h", "plane")) {
         scene2->addObject(plane2);
-    }
+    }*/
 
     printf("Scene 2 setup complete. Objects in scene: %zu\n", scene2->getObjectCount());
 
