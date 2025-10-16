@@ -1,4 +1,5 @@
 #include "DrawableObject.h"
+#include "ModelCache.h"
 
 DrawableObject::DrawableObject(bool isDynamic)
     : transform(isDynamic)
@@ -17,29 +18,24 @@ void DrawableObject::update(float deltaTime)
 void DrawableObject::draw(ShaderProgram& shader)
 {
     shader.use();
-    shader.setUniform("model", transform.getMatrix());
+    shader.setUniform("modelMatrix", transform.getMatrix());
     model.draw();
 }
 
 bool DrawableObject::loadModel(const std::string& filePath, const std::string& arrayName)
 {
-    std::vector<float> vertices = modelLoader.loadFromHeader(filePath, arrayName);
+    auto modelData = ModelCache::getInstance().loadModel(filePath, arrayName);
 
-    if (vertices.empty())
+    if (!modelData)
     {
-        std::cerr << "ERROR: Failed to load model from " << filePath << "\n";
+        std::cerr << "ERROR: Failed to load model from cache: " << filePath << "\n";
         return false;
     }
 
-    unsigned int vertexCount = vertices.size() / 6;
+    model.loadWithStride(modelData->vertices.data(),
+        modelData->vertexCount,
+        modelData->stride);
 
-    if (vertices.size() % 6 != 0)
-    {
-        std::cerr << "ERROR: Vertex data size not divisible by 6\n";
-        return false;
-    }
-
-    model.loadWithStride(vertices.data(), vertexCount, 6);
     return true;
 }
 

@@ -1,4 +1,5 @@
 #include "ShaderProgram.h"
+#include "Camera.h"
 #include <glm/gtc/type_ptr.hpp>
 #include <iostream>
 
@@ -10,6 +11,15 @@ ShaderProgram::~ShaderProgram()
 {
 }
 
+void ShaderProgram::onCameraChanged(Camera* camera)
+{
+    if (!camera) return;
+
+    use();
+    setUniform("viewMatrix", camera->getCamera());
+    setUniform("projectionMatrix", camera->getProjectionMatrix());
+}
+
 void ShaderProgram::use() const
 {
     glUseProgram(shaderProgramID);
@@ -18,12 +28,10 @@ void ShaderProgram::use() const
 GLint ShaderProgram::getUniformLocation(const std::string& name)
 {
     GLint location = glGetUniformLocation(shaderProgramID, name.c_str());
-
     if (location == -1)
     {
-        std::cerr << "WARNING: Uniform '" << name << "' not found in shader program\n";
+        std::cerr << "WARNING: Uniform '" << name << "' not found\n";
     }
-
     return location;
 }
 

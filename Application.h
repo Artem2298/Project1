@@ -22,15 +22,23 @@ private:
     bool isRunning;
     double lastFrameTime;
 
+    double lastMouseX;
+    double lastMouseY;
+    bool rightMousePressed;
+
     bool initGLFW();
     bool initGLEW();
     bool loadShaders(const char* vertexPath, const char* fragmentPath);
-    void setupScene(); 
+    void setupScene();
     void printSystemInfo();
 
     static void error_callback(int error, const char* description);
     static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
     static void window_size_callback(GLFWwindow* window, int width, int height);
+    static void mouse_button_callback(GLFWwindow* window, int button, int action, int mods);
+    static void mouse_callback(GLFWwindow* window, double xpos, double ypos);
+    void processInput(float deltaTime);
+    float randomFloat(float min, float max);
 
     static Application* s_instance;
 
