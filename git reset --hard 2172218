@@ -1,0 +1,13 @@
+[33m8cd627f[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mweek-4[m[33m, [m[1;31morigin/week-4[m[33m, [m[1;32mweek-3[m[33m)[m HEAD@{0}: checkout: moving from week-3 to week-4
+[33m8cd627f[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mweek-4[m[33m, [m[1;31morigin/week-4[m[33m, [m[1;32mweek-3[m[33m)[m HEAD@{1}: reset: moving to 8cd627f6ac3c552bb9c75923fa39d354ec7b2040
+[33m2172218[m[33m ([m[1;31morigin/week-3[m[33m)[m HEAD@{2}: commit: Create class Camera. Try to create designe pattern Observer
+[33m8cd627f[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mweek-4[m[33m, [m[1;31morigin/week-4[m[33m, [m[1;32mweek-3[m[33m)[m HEAD@{3}: commit: Change 2 Scene. Add sphere
+[33m35e0e79[m HEAD@{4}: commit: Created ModelLoader class and add folder with different Models.
+[33m7850b4a[m HEAD@{5}: commit: create all transformation function. I used Composit pattern for it.
+[33mcb54734[m[33m ([m[1;31morigin/week-2[m[33m, [m[1;32mweek-2[m[33m)[m HEAD@{6}: checkout: moving from week-2 to week-3
+[33mcb54734[m[33m ([m[1;31morigin/week-2[m[33m, [m[1;32mweek-2[m[33m)[m HEAD@{7}: commit: Add a lot of Classes, move our app to OOP mode.
+[33m2407218[m[33m ([m[1;31morigin/master[m[33m, [m[1;32mmaster[m[33m)[m HEAD@{8}: checkout: moving from master to week-2
+[33m2407218[m[33m ([m[1;31morigin/master[m[33m, [m[1;32mmaster[m[33m)[m HEAD@{9}: commit: Remove binary files
+[33mfc93a8a[m HEAD@{10}: commit: Add .gitignore file
+[33m8fd5c25[m HEAD@{11}: commit: Add project files.
+[33m41da35b[m HEAD@{12}: commit (initial): Add .gitattributes and .gitignore.
