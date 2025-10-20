@@ -21,10 +21,15 @@ void Model::loadWithStride(const float* vertices, unsigned int vertexCount, GLui
     if (isLoaded)
         cleanup();
 
-    this->vertexCount = vertexCount;
+    GLuint actualVertexCount = vertexCount / vertexSize;
+
+    this->vertexCount = actualVertexCount;
     this->stride = vertexSize;
 
-    GLuint totalFloats = vertexCount * vertexSize;
+    GLuint totalFloats = vertexCount;
+
+    std::cout << "Loading model: " << totalFloats << " floats = "
+        << actualVertexCount << " vertices (stride=" << vertexSize << ")" << std::endl;
 
     glGenBuffers(1, &VBO);
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
@@ -55,7 +60,8 @@ void Model::loadWithStride(const float* vertices, unsigned int vertexCount, GLui
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 
     isLoaded = true;
-    //std::cout << "Model loaded with stride " << vertexSize << ": " << vertexCount << " vertices\n";
+
+    std::cout << "Model loaded successfully: " << actualVertexCount << " vertices\n";
 }
 
 void Model::load(const float* vertices, unsigned int vertexCount)

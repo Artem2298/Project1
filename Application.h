@@ -6,7 +6,6 @@
 #include <memory>
 #include "Scene.h"
 #include "SceneManager.h"
-#include "ShaderProgram.h"
 
 class Application
 {
@@ -17,7 +16,6 @@ private:
     const char* windowTitle;
 
     SceneManager sceneManager;
-    std::unique_ptr<ShaderProgram> shaderProgram;
 
     bool isRunning;
     double lastFrameTime;
@@ -28,8 +26,13 @@ private:
 
     bool initGLFW();
     bool initGLEW();
-    bool loadShaders(const char* vertexPath, const char* fragmentPath);
-    void setupScene();
+    void setupScenes();
+
+    void createScene1();
+    void createScene2();
+    void createScene3();
+    void createScene4();
+
     void printSystemInfo();
 
     static void error_callback(int error, const char* description);
@@ -52,7 +55,6 @@ public:
 
     GLFWwindow* getWindow() const { return window; }
     SceneManager& getSceneManager() { return sceneManager; }
-    ShaderProgram* getShaderProgram() const { return shaderProgram.get(); }
     bool isOpen() const { return !glfwWindowShouldClose(window); }
 
     int getWindowWidth() const { return windowWidth; }

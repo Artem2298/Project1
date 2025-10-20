@@ -1,16 +1,30 @@
 #pragma once
-#include <string>
 #include <GL/glew.h>
+#include <string>
 
 class Shader
 {
 private:
-    GLuint id;
-    GLenum type;
+    GLuint shaderID;
+    GLenum shaderType;
+    std::string shaderPath;
+
+    std::string readFile(const std::string& filePath);
+    bool checkCompilation();
 
 public:
-    Shader(GLuint shaderType, const std::string& sourceCode);
+    Shader();
     ~Shader();
-    GLuint getID() const { return id; }
-    GLenum getType() const { return type; }
+
+    bool createShader(GLenum type, const std::string& sourceCode);
+
+    bool createShaderFromFile(GLenum type, const std::string& filePath);
+
+    void attachToProgram(GLuint programID);
+
+    GLuint getID() const { return shaderID; }
+    GLenum getType() const { return shaderType; }
+    const std::string& getPath() const { return shaderPath; }
+
+    void deleteShader();
 };

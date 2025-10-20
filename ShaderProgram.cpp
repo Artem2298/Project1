@@ -4,35 +4,129 @@
 #include <iostream>
 
 ShaderProgram::ShaderProgram()
+    : programID(0)
 {
+    programID = glCreateProgram();
+    std::cout << "ShaderProgram created (ID: " << programID << ")\n";
 }
 
 ShaderProgram::~ShaderProgram()
 {
+    if (programID != 0)
+    {
+        glDeleteProgram(programID);
+        std::cout << "ShaderProgram " << programID << " deleted\n";
+    }
+}
+
+bool ShaderProgram::loadFromFiles(const std::string& vertexPath,
+    const std::string& fragmentPath)
+{
+    std::cout << "\n=== Loading Shader Program ===\n";
+
+    if (!addShader(GL_VERTEX_SHADER, vertexPath))
+    {
+        return false;
+    }
+
+    if (!addShader(GL_FRAGMENT_SHADER, fragmentPath))
+    {
+        return false;
+    }
+
+    if (!link())
+    {
+        return false;
+    }
+
+    std::cout << "=== Shader Program loaded successfully ===\n\n";
+    return true;
+}
+
+bool ShaderProgram::addShader(GLenum type, const std::string& filePath)
+{
+    auto shader = std::make_unique<Shader>();
+
+    if (!shader->createShaderFromFile(type, filePath))
+    {
+        return false;
+    }
+
+    shader->attachToProgram(programID);
+    shaders.push_back(std::move(shader));
+
+    return true;
+}
+
+bool ShaderProgram::addShaderFromSource(GLenum type, const std::string& sourceCode)
+{
+    auto shader = std::make_unique<Shader>();
+
+    if (!shader->createShader(type, sourceCode))
+    {
+        return false;
+    }
+
+    shader->attachToProgram(programID);
+    shaders.push_back(std::move(shader));
+
+    return true;
+}
+
+bool ShaderProgram::link()
+{
+    glLinkProgram(programID);
+    return checkLinking();
+}
+
+bool ShaderProgram::checkLinking()
+{
+    GLint status;
+    glGetProgramiv(programID, GL_LINK_STATUS, &status);
+
+    if (status == GL_FALSE)
+    {
+        GLint infoLogLength;
+        glGetProgramiv(programID, GL_INFO_LOG_LENGTH, &infoLogLength);
+
+        char* infoLog = new char[infoLogLength + 1];
+        glGetProgramInfoLog(programID, infoLogLength, NULL, infoLog);
+
+        std::cerr << "ERROR: Shader program linking failed!\n";
+        std::cerr << "Log: " << infoLog << "\n";
+
+        delete[] infoLog;
+        return false;
+    }
+
+    std::cout << "Shader program linked successfully (ID: " << programID << ")\n";
+    return true;
+}
+
+void ShaderProgram::use() const
+{
+    glUseProgram(programID);
+}
+
+GLint ShaderProgram::getUniformLocation(const std::string& name)
+{
+    GLint location = glGetUniformLocation(programID, name.c_str());
+
+    return location;
 }
 
 void ShaderProgram::onCameraChanged(Camera* camera)
 {
     if (!camera) return;
 
+    std::cout << "  ? [ShaderProgram Observer] Received camera update notification\n";
+    std::cout << "  ? [ShaderProgram Observer] Updating viewMatrix and projectionMatrix uniforms\n";
+
     use();
     setUniform("viewMatrix", camera->getCamera());
     setUniform("projectionMatrix", camera->getProjectionMatrix());
-}
 
-void ShaderProgram::use() const
-{
-    glUseProgram(shaderProgramID);
-}
-
-GLint ShaderProgram::getUniformLocation(const std::string& name)
-{
-    GLint location = glGetUniformLocation(shaderProgramID, name.c_str());
-    if (location == -1)
-    {
-        std::cerr << "WARNING: Uniform '" << name << "' not found\n";
-    }
-    return location;
+    std::cout << "  ? [ShaderProgram Observer] Update complete ?\n";
 }
 
 void ShaderProgram::setUniform(const std::string& name, float value)

@@ -11,18 +11,31 @@ protected:
     Model model;
     Transformation transform;
     ModelLoader modelLoader;
+    ShaderProgram* shader;
+
+    glm::vec3 objectColor;
+    float shininess;
 
 public:
     DrawableObject(bool isDynamic = false);
     virtual ~DrawableObject();
 
     virtual void update(float deltaTime);
-    virtual void draw(ShaderProgram& shader);
+    virtual void draw();
 
     bool loadModel(const std::string& filePath, const std::string& arrayName);
 
     void addStaticTransform(ITransformComponent* component);
     void addDynamicTransform(ITransformComponent* component);
+
+    void setShader(ShaderProgram* shaderProgram);
+    ShaderProgram* getShader() const { return shader; }
+
+    void setObjectColor(const glm::vec3& color) { objectColor = color; }
+    glm::vec3 getObjectColor() const { return objectColor; }
+
+    void setShininess(float shine) { shininess = shine; }
+    float getShininess() const { return shininess; }
 
     Transformation& getTransformation() { return transform; }
     const Transformation& getTransformation() const { return transform; }

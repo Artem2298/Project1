@@ -4,7 +4,7 @@
 
 int main(void)
 {
-    Application app(800, 600, "ZPG");
+    Application app(800, 600, "KUZ_0061");
 
     if (!app.initialize())
     {

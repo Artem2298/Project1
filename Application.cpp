@@ -1,18 +1,15 @@
 ﻿#include "Application.h"
-#include "Triangle.h"
-#include "Square.h"
-#include "Plane.h"
 #include "TranslateTransform.h"
-#include "DynamicRotateTransform.h"
-#include "SceneManager.h"
-#include "ModelLoader.h"
-#include "ScaleTransform.h"
 #include "RotateTransform.h"
-#include "ModelCache.h"
+#include "ScaleTransform.h"
+#include "DynamicRotateTransform.h"
+#include "Camera.h"
+#include "Light.h"
+#include "DrawableObject.h"
 #include <iostream>
-#include <glm/vec3.hpp>
-#include <random>
+#include <cstdlib>
 #include <ctime>
+#include <glm/gtc/constants.hpp>
 
 Application* Application::s_instance = nullptr;
 
@@ -28,6 +25,7 @@ Application::Application(int width, int height, const char* title)
     rightMousePressed(false)
 {
     s_instance = this;
+    srand(static_cast<unsigned int>(time(nullptr)));
 }
 
 Application::~Application()
@@ -42,98 +40,87 @@ void Application::error_callback(int error, const char* description)
 
 void Application::key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
-    if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
-        glfwSetWindowShouldClose(window, GL_TRUE);
+    if (action == GLFW_PRESS) {
+        Application* app = s_instance;
 
-    if (action == GLFW_PRESS && s_instance)
-    {
-        if (key == GLFW_KEY_1)
-            s_instance->getSceneManager().switchScene(1);
-        else if (key == GLFW_KEY_2)
-            s_instance->getSceneManager().switchScene(2);
-        else if (key == GLFW_KEY_3)
-            s_instance->getSceneManager().switchScene(3);
+        if (key == GLFW_KEY_ESCAPE) {
+            glfwSetWindowShouldClose(window, GLFW_TRUE);
+        }
+
+        if (key == GLFW_KEY_1) {
+            app->sceneManager.switchScene(1);
+            std::cout << "Switched to Scene 1: Triangle Test" << std::endl;
+        }
+        else if (key == GLFW_KEY_2) {
+            app->sceneManager.switchScene(2);
+            std::cout << "Switched to Scene 2: Four Spheres (Lighting Models)" << std::endl;
+        }
+        else if (key == GLFW_KEY_3) {
+            app->sceneManager.switchScene(3);
+            std::cout << "Switched to Scene 3: Forest" << std::endl;
+        }
+        else if (key == GLFW_KEY_4) {
+            app->sceneManager.switchScene(4);
+            std::cout << "Switched to Scene 4: Solar System" << std::endl;
+        }
     }
 }
 
 void Application::processInput(float deltaTime)
 {
-    if (!window) return;
-    Scene* scene = getSceneManager().getCurrentScene();
-    Camera* camera = scene ? scene->getCamera() : nullptr;
-    if (!camera) return;
 
-    glm::vec3 direction = glm::normalize(camera->getDirection());
-    glm::vec3 up = glm::normalize(camera->getUp());
-    float dot = glm::dot(direction, up);
-    if (std::abs(dot) > 0.95f) {
+    Scene* currentScene = sceneManager.getCurrentScene();
+
+    if (!currentScene) {
         return;
     }
 
-    glm::vec3 right = glm::cross(direction, up);
-    float rightLength = glm::length(right);
-    if (rightLength < 0.001f) {
+    Camera* camera = currentScene->getCamera();
+
+    if (!camera) {
+        std::cerr << "No camera in current scene!" << std::endl;
         return;
     }
-    right = right / rightLength;
+
+    float cameraSpeed = 5.0f * deltaTime;
 
     glm::vec3 eye = camera->getEye();
-    float moveSpeed = 6.0f;
-    glm::vec3 moveDirection(0.0f);
-    bool moved = false;
+    glm::vec3 forward = camera->getDirection();
+    glm::vec3 up = camera->getUp();
+    glm::vec3 right = glm::normalize(glm::cross(forward, up));
 
-    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-    {
-        moveDirection += direction;
-        moved = true;
+    bool cameraMoved = false;
+
+    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
+        eye += forward * cameraSpeed;
+        cameraMoved = true;
     }
-    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-    {
-        moveDirection -= direction;
-        moved = true;
+    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
+        eye -= forward * cameraSpeed;
+        cameraMoved = true;
     }
-    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-    {
-        moveDirection -= right;
-        moved = true;
+    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
+        eye -= right * cameraSpeed;
+        cameraMoved = true;
     }
-    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-    {
-        moveDirection += right;
-        moved = true;
+    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
+        eye += right * cameraSpeed;
+        cameraMoved = true;
     }
 
-    if (moved)
-    {
-        float moveLength = glm::length(moveDirection);
-        if (moveLength > 0.001f)
-        {
-            moveDirection = moveDirection / moveLength;
-        }
-        else
-        {
-            return;
-        }
+    if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) {
+        eye += up * cameraSpeed;
+        cameraMoved = true;
+    }
+    if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS) {
+        eye -= up * cameraSpeed;
+        cameraMoved = true;
+    }
 
-        glm::vec3 newPosition = eye + moveDirection * moveSpeed * deltaTime;
-
-        if (std::isnan(newPosition.x) || std::isnan(newPosition.y) || std::isnan(newPosition.z) ||
-            std::isinf(newPosition.x) || std::isinf(newPosition.y) || std::isinf(newPosition.z))
-        {
-            return;
-        }
-
-        //std::cout << "\n[User Action] Camera position changed by keyboard\n";
-        camera->setPosition(newPosition);
-
-        static float timeSinceLastLog = 0.0f;
-        timeSinceLastLog += deltaTime;
-        if (timeSinceLastLog > 0.5f)
-        {
-            std::cout << "Camera now at: (" << newPosition.x << ", "
-                << newPosition.y << ", " << newPosition.z << ")\n";
-            timeSinceLastLog = 0.0f;
-        }
+    if (cameraMoved) {
+        camera->setPosition(eye);
+        /*std::cout << "Camera position: ("
+            << eye.x << ", " << eye.y << ", " << eye.z << ")" << std::endl;*/
     }
 }
 
@@ -181,10 +168,11 @@ bool Application::initGLFW()
     glfwMakeContextCurrent(window);
     glfwSwapInterval(1);
 
+    glfwSetErrorCallback(error_callback);
     glfwSetKeyCallback(window, key_callback);
     glfwSetWindowSizeCallback(window, window_size_callback);
-    glfwSetMouseButtonCallback(window, mouse_button_callback);
     glfwSetCursorPosCallback(window, mouse_callback);
+    glfwSetMouseButtonCallback(window, mouse_button_callback);
 
     std::cout << "GLFW initialized successfully\n";
     return true;
@@ -222,222 +210,407 @@ void Application::printSystemInfo()
     printf("==========================\n");
 }
 
-bool Application::loadShaders(const char* vertexPath, const char* fragmentPath)
+void Application::setupScenes()
 {
-    shaderProgram = std::make_unique<ShaderProgram>();
+    std::cout << "Setting up scenes..." << std::endl;
 
-    if (!shaderProgram->loadShader(vertexPath, fragmentPath))
-    {
-        fprintf(stderr, "ERROR: Failed to load shaders\n");
-        return false;
-    }
-
-    std::cout << "Shaders loaded successfully\n";
-    return true;
-}
-
-void Application::setupScene() 
-{
-    std::cout << "\n========================================\n";
-    std::cout << "Setting up scenes with model caching...\n";
-    std::cout << "========================================\n\n";
-
-    Scene* scene1 = new Scene();
-    sceneManager.addScene(1, scene1);
-
-    Camera* camera1 = new Camera(
-        glm::vec3(0.0f, 5.0f, 15.0f),
-        glm::vec3(0.0f, -0.3f, -1.0f),
-        glm::vec3(0.0f, 1.0f, 0.0f),
-        45.0f,
-        (float)windowWidth / windowHeight,
-        0.5f,
-        100.0f
-    );
-
-    scene1->setCamera(camera1);
-
-    DrawableObject* plane = new DrawableObject(false);
-    if (plane->loadModel("models/plain.h", "plain")) {
-        plane->addStaticTransform(new ScaleTransform(glm::vec3(40.0f, 1.0f, 40.0f)));
-        scene1->addObject(plane);
-    }
-
-    std::mt19937 rng(42);
-    std::uniform_real_distribution<float> posX(-10.0f, 10.0f);
-    std::uniform_real_distribution<float> posZ(-20.0f, 20.0f);
-    std::uniform_real_distribution<float> treeScale(0.75f, 1.5f);
-    std::uniform_real_distribution<float> bushScale(0.4f, 1.2f);
-    std::uniform_real_distribution<float> rotation(0.0f, 360.0f);
-
-    auto treeStartTime = glfwGetTime();
-
-    for (int i = 0; i < 50; i++) {
-        DrawableObject* tree = new DrawableObject(false);
-        if (tree->loadModel("models/tree.h", "tree")) {
-            float x = posX(rng);
-            float z = posZ(rng);
-            float s = treeScale(rng);
-            float rot = rotation(rng);
-
-            tree->addStaticTransform(new ScaleTransform(glm::vec3(s, s, s)));
-            tree->addStaticTransform(new RotateTransform(glm::vec3(0, 1, 0), rot));
-            tree->addStaticTransform(new TranslateTransform(glm::vec3(x, 0.0f, z)));
-
-            scene1->addObject(tree);
-        }
-    }
-
-    auto treeEndTime = glfwGetTime();
-
-    auto bushStartTime = glfwGetTime();
-
-    for (int i = 0; i < 50; i++) {
-        DrawableObject* bush = new DrawableObject(false);
-        if (bush->loadModel("models/bushes.h", "bushes")) {
-            float x = posX(rng);
-            float z = posZ(rng);
-            float s = bushScale(rng);
-            float rot = rotation(rng);
-
-            bush->addStaticTransform(new ScaleTransform(glm::vec3(s, s, s)));
-            bush->addStaticTransform(new RotateTransform(glm::vec3(0, 1, 0), rot));
-            bush->addStaticTransform(new TranslateTransform(glm::vec3(x, 0.0f, z)));
-
-            scene1->addObject(bush);
-        }
-    }
-
-    auto bushEndTime = glfwGetTime();
-
-    printf("Scene 1 setup complete. Objects in scene: %zu\n\n", scene1->getObjectCount());
-
-
-    Scene* scene2 = new Scene();
-    sceneManager.addScene(2, scene2);
-
-    Camera* camera2 = new Camera(
-        glm::vec3(0.0f, 0.0f, -7.0f),
-        glm::vec3(0.0f, 0.0f, 7.0f),
-        glm::vec3(0.0f, 1.0f, 0.0f),
-        45.0f,
-        (float)windowWidth / windowHeight,
-        0.1f,
-        100.0f
-    );
-    scene2->setCamera(camera2);
-
-    DrawableObject* sphere1 = new DrawableObject(true);
-    if (sphere1->loadModel("models/sphere.h", "sphere")) {
-        sphere1->addStaticTransform(new TranslateTransform(glm::vec3(3, 0, 0)));
-        scene2->addObject(sphere1);
-    }
-
-    DrawableObject* sphere2 = new DrawableObject(true);
-    if (sphere2->loadModel("models/sphere.h", "sphere")) {
-        sphere2->addStaticTransform(new TranslateTransform(glm::vec3(-3, 0, 0)));
-        scene2->addObject(sphere2);
-    }
-
-    DrawableObject* sphere3 = new DrawableObject(true);
-    if (sphere3->loadModel("models/sphere.h", "sphere")) {
-        sphere3->addStaticTransform(new TranslateTransform(glm::vec3(0, 3, 0)));
-        scene2->addObject(sphere3);
-    }
-
-    DrawableObject* sphere4 = new DrawableObject(true);
-    if (sphere4->loadModel("models/sphere.h", "sphere")) {
-        sphere4->addStaticTransform(new TranslateTransform(glm::vec3(0, -3, 0)));
-        scene2->addObject(sphere4);
-    }
-
-    printf("Scene 2 setup complete. Objects in scene: %zu\n\n", scene2->getObjectCount());
-
-    Scene* scene3 = new Scene();
-    sceneManager.addScene(3, scene3);
-
-    Camera* camera3 = new Camera(
-        glm::vec3(5.0f, 3.0f, 5.0f),
-        glm::vec3(-5.0f, -3.0f, -5.0f),
-        glm::vec3(0.0f, 1.0f, 0.0f),
-        45.0f,
-        (float)windowWidth / windowHeight,
-        0.1f,
-        100.0f
-    );
-
-    scene3->setCamera(camera3);
-
-    for (int i = 0; i < 10; i++) {
-        DrawableObject* triangle = new DrawableObject(true);
-        if (triangle->loadModel("models/triangle.h", "triangle")) {
-            float angle = (360.0f / 10.0f) * i;
-            float radius = 2.0f;
-            float x = radius * glm::cos(glm::radians(angle));
-            float z = radius * glm::sin(glm::radians(angle));
-            float y = glm::sin(glm::radians(angle * 2.0f)) * 0.5f;
-
-            triangle->addStaticTransform(new TranslateTransform(glm::vec3(x, y, z)));
-            triangle->addDynamicTransform(new DynamicRotateTransform(glm::vec3(1, 1, 0), 30.0f + i * 5.0f));
-
-            scene3->addObject(triangle);
-        }
-    }
-
-    printf("Scene 3 setup complete. Objects in scene: %zu\n\n", scene3->getObjectCount());
+    createScene1();
+    createScene2();
+    createScene3();
+    createScene4();
 
     sceneManager.switchScene(1);
+
+    std::cout << "All scenes created!" << std::endl;
+    std::cout << "Press 1-4 to switch between scenes" << std::endl;
+}
+
+void Application::createScene1()
+{
+    std::cout << "Creating Scene 3a: Triangle Test..." << std::endl;
+
+    Scene* scene = new Scene();
+
+    ShaderProgram* lambertShader = scene->createShader(
+        "shaders/lambert_vertex.glsl",
+        "shaders/lambert_fragment.glsl"
+    );
+
+    Camera* camera = new Camera(
+        glm::vec3(0.0f, 0.0f, 5.0f),
+        glm::vec3(0.0f, 0.0f, 0.0f),
+        glm::vec3(0.0f, 1.0f, 0.0f),
+        45.0f,
+        (float)windowWidth / windowHeight,
+        0.1f,
+        100.0f
+    );
+    scene->setCamera(camera);
+
+    DrawableObject* triangle = new DrawableObject(false);
+    if (triangle->loadModel("models/triangle.h", "triangle")) {
+        triangle->setShader(lambertShader);
+        triangle->setObjectColor(glm::vec3(1.0f, 0.5f, 0.2f));
+        scene->addObject(triangle);
+        std::cout << "Triangle loaded successfully!" << std::endl;
+    }
+    else {
+        std::cerr << "Failed to load triangle!" << std::endl;
+        delete triangle;
+    }
+
+    Light* light = new Light(
+        glm::vec3(2.0f, 2.0f, 2.0f),
+        glm::vec3(1.0f, 1.0f, 1.0f),
+        1.0f
+    );
+    scene->addLight(light);
+
+    sceneManager.addScene(1, scene);
+    std::cout << "Scene 3a created!" << std::endl;
+}
+
+void Application::createScene2()
+{
+    std::cout << "Creating Scene 3b: Four Spheres..." << std::endl;
+
+    Scene* scene = new Scene();
+
+    //ShaderProgram* constantShader = scene->createShader(
+    //    "shaders/constant_vertex.glsl",
+    //    "shaders/constant_fragment.glsl"
+    //);
+    //ShaderProgram* lambertShader = scene->createShader(
+    //    "shaders/lambert_vertex.glsl",
+    //    "shaders/lambert_fragment.glsl"
+    //);
+    ShaderProgram* phongShader = scene->createShader(
+        "shaders/phong_vertex.glsl",
+        "shaders/phong_fragment.glsl"
+    );
+    ShaderProgram* blinnShader = scene->createShader(
+        "shaders/blinn_vertex.glsl",
+        "shaders/blinn_fragment.glsl"
+    );
+
+    Camera* camera = new Camera(
+        glm::vec3(0.0f, 3.0f, 15.0f),
+        glm::vec3(0.0f, 0.0f, 0.0f),
+        glm::vec3(0.0f, 1.0f, 0.0f),
+        45.0f,
+        (float)windowWidth / windowHeight,
+        0.1f,
+        100.0f
+    );
+    scene->setCamera(camera);
+
+    Light* light = new Light(
+        glm::vec3(0.0f, 0.0f, 0.0f),
+        glm::vec3(1.0f, 1.0f, 1.0f),
+        1.5f
+    );
+    scene->addLight(light);
+
+    DrawableObject* sphere1 = new DrawableObject(false);
+    if (sphere1->loadModel("models/sphere.h", "sphere")) {
+        sphere1->setShader(phongShader);
+        sphere1->setObjectColor(glm::vec3(1.0f, 0.2f, 0.2f));
+        sphere1->addStaticTransform(new TranslateTransform(glm::vec3(-3.0f, 0.0f, 0.0f)));
+        sphere1->addStaticTransform(new ScaleTransform(glm::vec3(1.5f, 1.5f, 1.5f)));
+        scene->addObject(sphere1);
+        std::cout << "Sphere 1 (Constant) loaded!" << std::endl;
+    }
+    else {
+        delete sphere1;
+    }
+
+    DrawableObject* sphere2 = new DrawableObject(false);
+    if (sphere2->loadModel("models/sphere.h", "sphere")) {
+        sphere2->setShader(phongShader);
+        sphere2->setObjectColor(glm::vec3(0.2f, 1.0f, 0.2f));
+        sphere2->addStaticTransform(new TranslateTransform(glm::vec3(0.0f, 3.0f, 0.0f)));
+        sphere2->addStaticTransform(new ScaleTransform(glm::vec3(1.5f, 1.5f, 1.5f)));
+        scene->addObject(sphere2);
+        std::cout << "Sphere 2 (Lambert) loaded!" << std::endl;
+    }
+    else {
+        delete sphere2;
+    }
+
+    DrawableObject* sphere3 = new DrawableObject(false);
+    if (sphere3->loadModel("models/sphere.h", "sphere")) {
+        sphere3->setShader(blinnShader);
+        sphere3->setObjectColor(glm::vec3(0.2f, 0.2f, 1.0f));
+        sphere3->setShininess(32.0f);
+        sphere3->addStaticTransform(new TranslateTransform(glm::vec3(3.0f, 0.0f, 0.0f)));
+        sphere3->addStaticTransform(new ScaleTransform(glm::vec3(1.5f, 1.5f, 1.5f)));
+        scene->addObject(sphere3);
+        std::cout << "Sphere 3 (Phong) loaded!" << std::endl;
+    }
+    else {
+        delete sphere3;
+    }
+
+    DrawableObject* sphere4 = new DrawableObject(false);
+    if (sphere4->loadModel("models/sphere.h", "sphere")) {
+        sphere4->setShader(blinnShader);
+        sphere4->setObjectColor(glm::vec3(1.0f, 1.0f, 0.2f));
+        sphere4->setShininess(64.0f);
+        sphere4->addStaticTransform(new TranslateTransform(glm::vec3(0.0f, -3.0f, 0.0f)));
+        sphere4->addStaticTransform(new ScaleTransform(glm::vec3(1.5f, 1.5f, 1.5f)));
+        scene->addObject(sphere4);
+        std::cout << "Sphere 4 (Blinn-Phong) loaded!" << std::endl;
+    }
+    else {
+        delete sphere4;
+    }
+
+    sceneManager.addScene(2, scene);
+    std::cout << "Scene 3b created: 4 spheres with different shading models!" << std::endl;
+}
+
+void Application::createScene3()
+{
+    std::cout << "Creating Scene 3c: Forest..." << std::endl;
+
+    Scene* scene = new Scene();
+
+    ShaderProgram* lambertShader = scene->createShader(
+        "shaders/lambert_vertex.glsl",
+        "shaders/lambert_fragment.glsl"
+    );
+    ShaderProgram* phongShader = scene->createShader(
+        "shaders/phong_vertex.glsl",
+        "shaders/phong_fragment.glsl"
+    );
+
+    Camera* camera = new Camera(
+        glm::vec3(0.0f, 5.0f, 20.0f),
+        glm::vec3(0.0f, 2.0f, 0.0f),
+        glm::vec3(0.0f, 1.0f, 0.0f),
+        45.0f,
+        (float)windowWidth / windowHeight,
+        0.1f,
+        200.0f
+    );
+    scene->setCamera(camera);
+
+    Light* sunlight = new Light(
+        glm::vec3(10.0f, 20.0f, 10.0f),
+        glm::vec3(1.0f, 0.95f, 0.8f),
+        2.0f
+    );
+    scene->addLight(sunlight);
+
+    DrawableObject* ground = new DrawableObject(false);
+    if (ground->loadModel("models/plain.h", "plain")) {
+        ground->setShader(lambertShader);
+        ground->setObjectColor(glm::vec3(0.2f, 0.6f, 0.2f));
+        ground->addStaticTransform(new ScaleTransform(glm::vec3(50.0f, 1.0f, 50.0f)));
+        ground->addStaticTransform(new TranslateTransform(glm::vec3(0.0f, 0.0f, 0.0f)));
+        scene->addObject(ground);
+        std::cout << "Ground plane loaded!" << std::endl;
+    }
+    else {
+        delete ground;
+    }
+
+    std::cout << "Planting trees..." << std::endl;
+    int treeCount = 0;
+    int bushCount = 0;
+
+    for (int x = -3; x <= 3; x++) {
+        for (int z = -3; z <= 3; z++) {
+            if (x == 0 && z == 0) continue;
+
+            if (randomFloat(0.0f, 1.0f) > 0.3f) {
+                DrawableObject* tree = new DrawableObject(false);
+                if (tree->loadModel("models/tree.h", "tree")) {
+                    tree->setShader(phongShader);
+                    tree->setObjectColor(glm::vec3(0.4f, 0.25f, 0.1f));
+                    tree->setShininess(16.0f);
+
+                    float xPos = x * 5.0f + randomFloat(-1.0f, 1.0f);
+                    float zPos = z * 5.0f + randomFloat(-1.0f, 1.0f);
+                    float scale = randomFloat(0.8f, 1.5f);
+                    float rotation = randomFloat(0.0f, 360.0f);
+
+                    tree->addStaticTransform(new TranslateTransform(glm::vec3(xPos, 0.0f, zPos)));
+                    tree->addStaticTransform(new ScaleTransform(glm::vec3(scale, scale, scale)));
+                    tree->addStaticTransform(new RotateTransform(glm::vec3(0.0f, 1.0f, 0.0f), glm::radians(rotation)));
+
+                    scene->addObject(tree);
+                    treeCount++;
+                }
+                else {
+                    delete tree;
+                }
+            }
+
+            if (randomFloat(0.0f, 1.0f) > 0.5f) {
+                DrawableObject* bush = new DrawableObject(false);
+                if (bush->loadModel("models/bushes.h", "bushes")) {
+                    bush->setShader(lambertShader);
+                    bush->setObjectColor(glm::vec3(0.1f, 0.5f, 0.1f));
+
+                    float xPos = x * 5.0f + randomFloat(-2.0f, 2.0f);
+                    float zPos = z * 5.0f + randomFloat(-2.0f, 2.0f);
+                    float scale = randomFloat(0.5f, 1.0f);
+
+                    bush->addStaticTransform(new TranslateTransform(glm::vec3(xPos, 0.0f, zPos)));
+                    bush->addStaticTransform(new ScaleTransform(glm::vec3(scale, scale, scale)));
+
+                    scene->addObject(bush);
+                    bushCount++;
+                }
+                else {
+                    delete bush;
+                }
+            }
+        }
+    }
+
+    std::cout << "Forest created with " << treeCount << " trees and "
+        << bushCount << " bushes!" << std::endl;
+
+    sceneManager.addScene(3, scene);
+    std::cout << "Scene 3c created!" << std::endl;
+}
+
+void Application::createScene4()
+{
+    Scene* scene = new Scene();
+
+    ShaderProgram* constantShader = scene->createShader(
+        "shaders/constant_vertex.glsl",
+        "shaders/constant_fragment.glsl"
+    );
+    ShaderProgram* phongShader = scene->createShader(
+        "shaders/phong_vertex.glsl",
+        "shaders/phong_fragment.glsl"
+    );
+    ShaderProgram* blinnShader = scene->createShader(
+        "shaders/blinn_vertex.glsl",
+        "shaders/blinn_fragment.glsl"
+    );
+
+    Camera* camera = new Camera(
+        glm::vec3(0.0f, 15.0f, 30.0f),
+        glm::vec3(0.0f, 0.0f, 0.0f),
+        glm::vec3(0.0f, 1.0f, 0.0f),
+        45.0f,
+        (float)windowWidth / windowHeight,
+        0.1f,
+        500.0f
+    );
+    scene->setCamera(camera);
+
+    Light* sunLight = new Light(
+        glm::vec3(0.0f, 0.0f, 0.0f),
+        glm::vec3(1.0f, 0.9f, 0.6f),
+        3.0f
+    );
+    scene->addLight(sunLight);
+
+    DrawableObject* sun = new DrawableObject(false);
+    if (sun->loadModel("models/sphere.h", "sphere")) {
+        sun->setShader(constantShader);
+        sun->setObjectColor(glm::vec3(1.0f, 0.9f, 0.2f));
+        sun->addStaticTransform(new ScaleTransform(glm::vec3(3.0f, 3.0f, 3.0f)));
+        scene->addObject(sun);
+        std::cout << "Sun loaded (from cache)!" << std::endl;
+    }
+    else {
+        delete sun;
+    }
+
+    DrawableObject* earth = new DrawableObject(true);
+    if (earth->loadModel("models/sphere.h", "sphere")) {
+        earth->setShader(phongShader);
+        earth->setObjectColor(glm::vec3(0.2f, 0.4f, 0.8f));
+        earth->setShininess(32.0f);
+
+        earth->addStaticTransform(new ScaleTransform(glm::vec3(1.5f, 1.5f, 1.5f)));
+
+        earth->addDynamicTransform(new DynamicRotateTransform(glm::vec3(0.0f, 1.0f, 0.0f), 20.0f));
+        earth->addDynamicTransform(new TranslateTransform(glm::vec3(12.0f, 0.0f, 0.0f)));
+        earth->addDynamicTransform(new DynamicRotateTransform(glm::vec3(0.0f, 1.0f, 0.0f), 2.0f));
+
+        scene->addObject(earth);
+        std::cout << "Earth loaded (from cache)!" << std::endl;
+    }
+    else {
+        delete earth;
+    }
+
+    DrawableObject* moon = new DrawableObject(true);
+    if (moon->loadModel("models/sphere.h", "sphere")) {
+        moon->setShader(blinnShader);
+        moon->setObjectColor(glm::vec3(0.7f, 0.7f, 0.7f));
+        moon->setShininess(16.0f);
+
+        moon->addStaticTransform(new ScaleTransform(glm::vec3(0.5f, 0.5f, 0.5f)));
+
+        moon->addDynamicTransform(new DynamicRotateTransform(glm::vec3(0.0f, 1.0f, 0.0f), 0.4f));
+        moon->addDynamicTransform(new TranslateTransform(glm::vec3(3.0f, 0.0f, 0.0f)));
+        moon->addDynamicTransform(new DynamicRotateTransform(glm::vec3(0.0f, 1.0f, 0.0f), 20.0f));
+        moon->addDynamicTransform(new TranslateTransform(glm::vec3(12.0f, 0.0f, 0.0f)));
+        moon->addDynamicTransform(new DynamicRotateTransform(glm::vec3(0.0f, 1.0f, 0.0f), 2.0f));
+
+        scene->addObject(moon);
+        std::cout << "Moon loaded (from cache)!" << std::endl;
+    }
+    else {
+        delete moon;
+    }
+
+    sceneManager.addScene(4, scene);
+    std::cout << "Scene 3d created: Solar System!" << std::endl;
+    std::cout << "Earth orbits Sun, Moon orbits Earth!" << std::endl;
 }
 
 bool Application::initialize()
 {
-    std::cout << "Initializing Application...\n";
-
-    if (!initGLFW())
+    if (!initGLFW()) {
         return false;
-
-    if (!initGLEW())
+    }
+    
+    if (!initGLEW()) {
         return false;
-
+    }
+    
     printSystemInfo();
-
-    if (!loadShaders("vertex.glsl", "fragment.glsl"))
-        return false;
-
-    setupScene();
-
+    
+    setupScenes();
+    
     isRunning = true;
     lastFrameTime = glfwGetTime();
-
-    lastMouseX = static_cast<double>(windowWidth) / 2.0;
-    lastMouseY = static_cast<double>(windowHeight) / 2.0;
-
-    std::cout << "Application initialized successfully\n";
+    
     return true;
 }
 
 void Application::run()
 {
-    if (!isRunning)
-    {
-        std::cerr << "ERROR: Application not initialized. Call initialize() first\n";
-        return;
-    }
+    std::cout << "Application::run() started" << std::endl;
 
-    while (isOpen())
-    {
+    while (isOpen() && isRunning) {
         double currentTime = glfwGetTime();
-        float deltaTime = (float)(currentTime - lastFrameTime);
+        float deltaTime = static_cast<float>(currentTime - lastFrameTime);
         lastFrameTime = currentTime;
+
+        processInput(deltaTime);
+
+        Scene* currentScene = sceneManager.getCurrentScene();
+        if (currentScene) {
+            currentScene->update(deltaTime);
+        }
 
         processInput(deltaTime);
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        Scene* currentScene = sceneManager.getCurrentScene();
         if (currentScene) {
-            currentScene->update(deltaTime);
-            currentScene->render(*shaderProgram);
+            currentScene->render();
         }
 
         glfwSwapBuffers(window);
@@ -447,52 +620,63 @@ void Application::run()
 
 void Application::shutdown()
 {
-    std::cout << "Shutting down Application...\n";
-
-    shaderProgram.reset();
-
-    if (window)
-    {
+    if (window) {
         glfwDestroyWindow(window);
         window = nullptr;
     }
 
     glfwTerminate();
-    isRunning = false;
-
-    std::cout << "Application shutdown complete\n";
 }
 
 void Application::mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 {
-    if (s_instance && button == GLFW_MOUSE_BUTTON_RIGHT)
-    {
-        s_instance->rightMousePressed = (action == GLFW_PRESS);
+    Application* app = s_instance;
+    if (!app) return;
+
+    if (button == GLFW_MOUSE_BUTTON_RIGHT) {
+        if (action == GLFW_PRESS) {
+            app->rightMousePressed = true;
+            glfwGetCursorPos(window, &app->lastMouseX, &app->lastMouseY);
+        }
+        else if (action == GLFW_RELEASE) {
+            app->rightMousePressed = false;
+        }
     }
 }
 
 void Application::mouse_callback(GLFWwindow* window, double xpos, double ypos)
 {
-    if (s_instance && s_instance->rightMousePressed)
-    {
-        float deltaYaw = static_cast<float>(xpos - s_instance->lastMouseX) * 0.001f;
-        float deltaPitch = static_cast<float>(ypos - s_instance->lastMouseY) * 0.001f;
+    Application* app = s_instance;
+    if (!app) return;
 
-        Scene* scene = s_instance->getSceneManager().getCurrentScene();
-        Camera* camera = scene ? scene->getCamera() : nullptr;
-        if (camera)
-        {
-            camera->updateDirection(-deltaYaw, deltaPitch);
-        }
+    if (!app->rightMousePressed) {
+        app->lastMouseX = xpos;
+        app->lastMouseY = ypos;
+        return;
     }
 
-    s_instance->lastMouseX = xpos;
-    s_instance->lastMouseY = ypos;
+    double xOffset = xpos - app->lastMouseX;
+    double yOffset = app->lastMouseY - ypos;
+
+    app->lastMouseX = xpos;
+    app->lastMouseY = ypos;
+
+    float sensitivity = 0.1f;
+    xOffset *= sensitivity;
+    yOffset *= sensitivity;
+
+    Scene* currentScene = app->sceneManager.getCurrentScene();
+    if (!currentScene) return;
+
+    Camera* camera = currentScene->getCamera();
+    if (!camera) return;
+
+    camera->updateDirection(static_cast<float>(xOffset), static_cast<float>(yOffset));
+
+    //std::cout << "Camera rotated: yaw=" << xOffset << ", pitch=" << yOffset << std::endl;
 }
 
-float randomFloat(float min, float max)
+float Application::randomFloat(float min, float max)
 {
-    static std::mt19937 rng(static_cast<unsigned int>(time(nullptr)));
-    std::uniform_real_distribution<float> dist(min, max);
-    return dist(rng);
+    return min + static_cast<float>(rand()) / (static_cast<float>(RAND_MAX / (max - min)));
 }

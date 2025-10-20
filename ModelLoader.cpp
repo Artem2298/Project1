@@ -16,14 +16,14 @@ std::string ModelLoader::readFile(const std::string& filePath)
 {
     std::ifstream file(filePath);
 
-    if (!file.is_open())
-    {
-        std::cerr << "ERROR: Could not open file: " << filePath << "\n";
+    if (!file.is_open()) {
+        std::cerr << "ERROR: Could not open file: " << filePath << std::endl;
         return "";
     }
 
     std::stringstream buffer;
     buffer << file.rdbuf();
+
     file.close();
 
     return buffer.str();

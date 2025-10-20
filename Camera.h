@@ -35,6 +35,7 @@ public:
     void attach(CameraObserver* observer);
     void detach(CameraObserver* observer);
 
+    const glm::vec3& getDirection();
     void setPosition(const glm::vec3& newEye);
     void setTarget(const glm::vec3& newTarget);
     void setUp(const glm::vec3& newUp);
@@ -44,6 +45,5 @@ public:
     const glm::mat4& getCamera() const { return viewMatrix; }
     const glm::mat4& getProjectionMatrix() const { return projectionMatrix; }
     const glm::vec3& getEye() const { return eye; }
-    const glm::vec3& getDirection() const { return target; }
     const glm::vec3& getUp() const { return up; }
 };
