@@ -1,4 +1,6 @@
 #include "Scene.h"
+#include "LightObject.h"
+#include <algorithm>
 #include <iostream>
 
 Scene::Scene()
@@ -36,10 +38,37 @@ void Scene::addLight(Light* light)
     }
 
     lights.push_back(light);
-
     light->attach(this);
 
-    std::cout << "Light added to scene. Total lights: " << lights.size() << "\n";
+    std::cout << "Light added to scene. Total lights: " << lights.size() << std::endl;
+}
+
+void Scene::addLightObject(LightObject* lightObj)
+{
+    if (lightObj == nullptr) {
+        std::cerr << "Scene::addLightObject() - lightObj is nullptr!" << std::endl;
+        return;
+    }
+
+    std::cout << "Scene::addLightObject() - Adding LightObject..." << std::endl;
+
+    objects.push_back(std::unique_ptr<DrawableObject>(lightObj));
+
+    Light* light = lightObj->getAttachedLight();
+    if (light != nullptr) {
+        lights.push_back(light);
+
+        light->attach(this);
+
+        std::cout << "Scene::addLightObject() - Light added at ("
+            << light->getPosition().x << ", "
+            << light->getPosition().y << ", "
+            << light->getPosition().z << ")"
+            << " Total lights: " << lights.size() << std::endl;
+    }
+    else {
+        std::cerr << "WARNING: LightObject has no attached light!" << std::endl;
+    }
 }
 
 void Scene::removeLight(Light* light)
@@ -108,6 +137,12 @@ void Scene::render()
         ShaderProgram* shader = obj->getShader();
         shader->use();
 
+        glm::mat4 modelMatrix = obj->getModelMatrix();
+        glm::mat3 normalMatrix = glm::transpose(glm::inverse(glm::mat3(modelMatrix)));
+
+        shader->setUniform("modelMatrix", modelMatrix);
+        shader->setUniform("normalMatrix", normalMatrix);
+
         shader->setUniform("viewMatrix", viewMatrix);
         shader->setUniform("projectionMatrix", projectionMatrix);
 
@@ -118,18 +153,30 @@ void Scene::render()
             }
         }
 
-        if (!lights.empty() && lights[0] != nullptr) {
-            Light* light = lights[0];
+        int numLights = static_cast<int>(lights.size());
+        if (numLights > 10) {
+            numLights = 10;
+        }
 
-            if (shader->getUniformLocation("lightPosition") != -1) {
-                shader->setUniform("lightPosition", light->getPosition());
+        GLint numLightsLoc = shader->getUniformLocation("numLights");
+        if (numLightsLoc != -1) {
+            shader->setUniform("numLights", numLights);
+        }
+
+        for (int i = 0; i < numLights; i++) {
+            if (lights[i] != nullptr) {
+                lights[i]->applyToShader(*shader, i);
             }
-            if (shader->getUniformLocation("lightColor") != -1) {
-                shader->setUniform("lightColor", light->getColor());
-            }
-            if (shader->getUniformLocation("lightIntensity") != -1) {
-                shader->setUniform("lightIntensity", light->getIntensity());
-            }
+        }
+
+        GLint objectColorLoc = shader->getUniformLocation("objectColor");
+        if (objectColorLoc != -1) {
+            shader->setUniform("objectColor", obj->getObjectColor());
+        }
+
+        GLint shininessLoc = shader->getUniformLocation("shininess");
+        if (shininessLoc != -1) {
+            shader->setUniform("shininess", obj->getShininess());
         }
 
         obj->draw();
@@ -174,9 +221,21 @@ void Scene::onCameraChanged(Camera* camera)
 void Scene::onLightChanged(Light* light)
 {
     if (!light) return;
+}
 
-    std::cout << "  ? [Scene Observer] Received light update notification\n";
-    std::cout << "  ? [Scene Observer] Light parameters updated in scene ?\n";
+void Scene::onLightDestroyed(Light* light)
+{
+    std::cout << "Scene::onLightDestroyed() - Removing light from scene..." << std::endl;
+
+    auto it = std::find(lights.begin(), lights.end(), light);
+    if (it != lights.end()) {
+        lights.erase(it);
+        std::cout << "Scene::onLightDestroyed() - Light removed. Total lights: "
+            << lights.size() << std::endl;
+    }
+    else {
+        std::cerr << "WARNING: Light not found in scene!" << std::endl;
+    }
 }
 
 DrawableObject* Scene::getObject(size_t index)

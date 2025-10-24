@@ -6,6 +6,7 @@
 #include <memory>
 #include "Scene.h"
 #include "SceneManager.h"
+#include "LightObject.h"
 
 class Application
 {

@@ -7,7 +7,6 @@ ShaderProgram::ShaderProgram()
     : programID(0)
 {
     programID = glCreateProgram();
-    std::cout << "ShaderProgram created (ID: " << programID << ")\n";
 }
 
 ShaderProgram::~ShaderProgram()
@@ -15,15 +14,12 @@ ShaderProgram::~ShaderProgram()
     if (programID != 0)
     {
         glDeleteProgram(programID);
-        std::cout << "ShaderProgram " << programID << " deleted\n";
     }
 }
 
 bool ShaderProgram::loadFromFiles(const std::string& vertexPath,
     const std::string& fragmentPath)
 {
-    std::cout << "\n=== Loading Shader Program ===\n";
-
     if (!addShader(GL_VERTEX_SHADER, vertexPath))
     {
         return false;
@@ -39,7 +35,6 @@ bool ShaderProgram::loadFromFiles(const std::string& vertexPath,
         return false;
     }
 
-    std::cout << "=== Shader Program loaded successfully ===\n\n";
     return true;
 }
 
@@ -119,14 +114,10 @@ void ShaderProgram::onCameraChanged(Camera* camera)
 {
     if (!camera) return;
 
-    std::cout << "  ? [ShaderProgram Observer] Received camera update notification\n";
-    std::cout << "  ? [ShaderProgram Observer] Updating viewMatrix and projectionMatrix uniforms\n";
-
     use();
     setUniform("viewMatrix", camera->getCamera());
     setUniform("projectionMatrix", camera->getProjectionMatrix());
 
-    std::cout << "  ? [ShaderProgram Observer] Update complete ?\n";
 }
 
 void ShaderProgram::setUniform(const std::string& name, float value)

@@ -85,7 +85,7 @@ void Application::processInput(float deltaTime)
     float cameraSpeed = 5.0f * deltaTime;
 
     glm::vec3 eye = camera->getEye();
-    glm::vec3 forward = camera->getDirection();
+    glm::vec3 forward = camera->getTarget();
     glm::vec3 up = camera->getUp();
     glm::vec3 right = glm::normalize(glm::cross(forward, up));
 
@@ -119,8 +119,6 @@ void Application::processInput(float deltaTime)
 
     if (cameraMoved) {
         camera->setPosition(eye);
-        /*std::cout << "Camera position: ("
-            << eye.x << ", " << eye.y << ", " << eye.z << ")" << std::endl;*/
     }
 }
 
@@ -227,9 +225,21 @@ void Application::setupScenes()
 
 void Application::createScene1()
 {
-    std::cout << "Creating Scene 3a: Triangle Test..." << std::endl;
+    std::cout << "\n========================================" << std::endl;
+    std::cout << "Creating Scene: One Firefly Test (Circular Motion)" << std::endl;
+    std::cout << "========================================\n" << std::endl;
 
     Scene* scene = new Scene();
+
+    ShaderProgram* phongShader = scene->createShader(
+        "shaders/phong_vertex.glsl",
+        "shaders/phong_fragment.glsl"
+    );
+
+    ShaderProgram* constantShader = scene->createShader(
+        "shaders/constant_vertex.glsl",
+        "shaders/constant_fragment.glsl"
+    );
 
     ShaderProgram* lambertShader = scene->createShader(
         "shaders/lambert_vertex.glsl",
@@ -237,8 +247,8 @@ void Application::createScene1()
     );
 
     Camera* camera = new Camera(
-        glm::vec3(0.0f, 0.0f, 5.0f),
-        glm::vec3(0.0f, 0.0f, 0.0f),
+        glm::vec3(0.0f, 5.0f, 15.0f),
+        glm::vec3(0.0f, 1.0f, 0.0f),
         glm::vec3(0.0f, 1.0f, 0.0f),
         45.0f,
         (float)windowWidth / windowHeight,
@@ -247,27 +257,62 @@ void Application::createScene1()
     );
     scene->setCamera(camera);
 
-    DrawableObject* triangle = new DrawableObject(false);
-    if (triangle->loadModel("models/triangle.h", "triangle")) {
-        triangle->setShader(lambertShader);
-        triangle->setObjectColor(glm::vec3(1.0f, 0.5f, 0.2f));
-        scene->addObject(triangle);
-        std::cout << "Triangle loaded successfully!" << std::endl;
+    /*Light* moonlight = new Light(
+        glm::vec3(0.0f, 50.0f, 0.0f),
+        glm::vec3(0.15f, 0.15f, 0.2f),
+        0.1f,
+        1.0f, 0.007f, 0.0002f
+    );
+    scene->addLight(moonlight);*/
+
+    DrawableObject* ground = new DrawableObject(false);
+    if (ground->loadModel("models/plain.h", "plain")) {
+        ground->setShader(lambertShader);
+        ground->setObjectColor(glm::vec3(0.25f, 0.45f, 0.25f));
+        //ground->setShininess(32.0f);
+        ground->addStaticTransform(new ScaleTransform(glm::vec3(20.0f, 1.0f, 20.0f)));
+        scene->addObject(ground);
+    }
+
+    DrawableObject* tree = new DrawableObject(false);
+    if (tree->loadModel("models/tree.h", "tree")) {
+        tree->setShader(phongShader);
+        tree->setObjectColor(glm::vec3(0.5f, 0.35f, 0.2f));
+        tree->setShininess(16.0f);
+        tree->addStaticTransform(new TranslateTransform(glm::vec3(0.0f, 0.0f, 0.0f)));
+        tree->addStaticTransform(new ScaleTransform(glm::vec3(1.0f, 1.0f, 1.0f)));
+        scene->addObject(tree);
+    }
+
+    // ===== СВЕТЛЯЧОК =====
+    LightObject* firefly = new LightObject(
+        glm::vec3(0.0f, 0.0f, 0.0f),
+        5.0f,                          // Радиус орбиты
+        glm::vec3(1.0f, 1.0f, 0.3f),
+        3.0f,                          // Ярче
+        1.0f, 0.14f, 0.7f            // ← Радиус света ~20м (достаёт до дерева!)
+    );
+
+    if (firefly->loadModel("models/sphere.h", "sphere")) {
+        firefly->setShader(constantShader);
+        firefly->setObjectColor(glm::vec3(1.0f, 1.0f, 0.3f));
+        firefly->addStaticTransform(new ScaleTransform(glm::vec3(0.05f, 0.05f, 0.05f)));
+
+        // Настраиваем скорость вращения
+        firefly->setOrbitSpeed(1.0f);   // 1 радиан/сек (круг за ~6 сек)
+        firefly->setOrbitHeight(0.5f);  // 1.5м высота
+
+        scene->addLightObject(firefly);
+        std::cout << "✅ Firefly created!" << std::endl;
     }
     else {
-        std::cerr << "Failed to load triangle!" << std::endl;
-        delete triangle;
+        delete firefly;
     }
 
-    Light* light = new Light(
-        glm::vec3(2.0f, 2.0f, 2.0f),
-        glm::vec3(1.0f, 1.0f, 1.0f),
-        1.0f
-    );
-    scene->addLight(light);
-
     sceneManager.addScene(1, scene);
-    std::cout << "Scene 3a created!" << std::endl;
+    std::cout << "\n========================================" << std::endl;
+    std::cout << "Expected: Firefly orbiting around tree" << std::endl;
+    std::cout << "========================================\n" << std::endl;
 }
 
 void Application::createScene2()
@@ -276,14 +321,14 @@ void Application::createScene2()
 
     Scene* scene = new Scene();
 
-    //ShaderProgram* constantShader = scene->createShader(
-    //    "shaders/constant_vertex.glsl",
-    //    "shaders/constant_fragment.glsl"
-    //);
-    //ShaderProgram* lambertShader = scene->createShader(
-    //    "shaders/lambert_vertex.glsl",
-    //    "shaders/lambert_fragment.glsl"
-    //);
+    ShaderProgram* constantShader = scene->createShader(
+        "shaders/constant_vertex.glsl",
+        "shaders/constant_fragment.glsl"
+    );
+    ShaderProgram* lambertShader = scene->createShader(
+        "shaders/lambert_vertex.glsl",
+        "shaders/lambert_fragment.glsl"
+    );
     ShaderProgram* phongShader = scene->createShader(
         "shaders/phong_vertex.glsl",
         "shaders/phong_fragment.glsl"
@@ -304,17 +349,36 @@ void Application::createScene2()
     );
     scene->setCamera(camera);
 
-    Light* light = new Light(
+    Light* light1 = new Light(
         glm::vec3(0.0f, 0.0f, 0.0f),
         glm::vec3(1.0f, 1.0f, 1.0f),
-        1.5f
+        1.5f,
+        1.0f, 0.14f, 0.07f
     );
-    scene->addLight(light);
+
+    Light* light2 = new Light(
+        glm::vec3(-7.0f, 0.0f, 0.0f),
+        glm::vec3(1.0f, 0.0f, 0.0f),
+        1.5f,
+        1.0f, 0.22f, 0.00002f
+    );
+
+    Light* light3 = new Light(
+        glm::vec3(7.0f, 0.0f, 0.0f),
+        glm::vec3(0.0f, 1.0f, 0.0f),
+        1.5f,
+        1.0f, 0.22f, 0.00002f
+    );
+
+    scene->addLight(light1);
+    scene->addLight(light2);
+    scene->addLight(light3);
+
 
     DrawableObject* sphere1 = new DrawableObject(false);
     if (sphere1->loadModel("models/sphere.h", "sphere")) {
         sphere1->setShader(phongShader);
-        sphere1->setObjectColor(glm::vec3(1.0f, 0.2f, 0.2f));
+        sphere1->setObjectColor(glm::vec3(0.2f, 0.2f, 0.8f));
         sphere1->addStaticTransform(new TranslateTransform(glm::vec3(-3.0f, 0.0f, 0.0f)));
         sphere1->addStaticTransform(new ScaleTransform(glm::vec3(1.5f, 1.5f, 1.5f)));
         scene->addObject(sphere1);
@@ -327,7 +391,7 @@ void Application::createScene2()
     DrawableObject* sphere2 = new DrawableObject(false);
     if (sphere2->loadModel("models/sphere.h", "sphere")) {
         sphere2->setShader(phongShader);
-        sphere2->setObjectColor(glm::vec3(0.2f, 1.0f, 0.2f));
+        sphere2->setObjectColor(glm::vec3(0.2f, 0.2f, 0.8f));
         sphere2->addStaticTransform(new TranslateTransform(glm::vec3(0.0f, 3.0f, 0.0f)));
         sphere2->addStaticTransform(new ScaleTransform(glm::vec3(1.5f, 1.5f, 1.5f)));
         scene->addObject(sphere2);
@@ -339,8 +403,8 @@ void Application::createScene2()
 
     DrawableObject* sphere3 = new DrawableObject(false);
     if (sphere3->loadModel("models/sphere.h", "sphere")) {
-        sphere3->setShader(blinnShader);
-        sphere3->setObjectColor(glm::vec3(0.2f, 0.2f, 1.0f));
+        sphere3->setShader(phongShader);
+        sphere3->setObjectColor(glm::vec3(0.2f, 0.2f, 0.8f));
         sphere3->setShininess(32.0f);
         sphere3->addStaticTransform(new TranslateTransform(glm::vec3(3.0f, 0.0f, 0.0f)));
         sphere3->addStaticTransform(new ScaleTransform(glm::vec3(1.5f, 1.5f, 1.5f)));
@@ -353,9 +417,9 @@ void Application::createScene2()
 
     DrawableObject* sphere4 = new DrawableObject(false);
     if (sphere4->loadModel("models/sphere.h", "sphere")) {
-        sphere4->setShader(blinnShader);
-        sphere4->setObjectColor(glm::vec3(1.0f, 1.0f, 0.2f));
-        sphere4->setShininess(64.0f);
+        sphere4->setShader(phongShader);
+        sphere4->setObjectColor(glm::vec3(0.2f, 0.2f, 0.8f));
+        sphere4->setShininess(100.0f);
         sphere4->addStaticTransform(new TranslateTransform(glm::vec3(0.0f, -3.0f, 0.0f)));
         sphere4->addStaticTransform(new ScaleTransform(glm::vec3(1.5f, 1.5f, 1.5f)));
         scene->addObject(sphere4);
@@ -396,77 +460,91 @@ void Application::createScene3()
     scene->setCamera(camera);
 
     Light* sunlight = new Light(
-        glm::vec3(10.0f, 20.0f, 10.0f),
+        glm::vec3(10.0f, 50.0f, 10.0f),
         glm::vec3(1.0f, 0.95f, 0.8f),
-        2.0f
+        2.0f,
+        1.0f, 0.001f, 0.000001f
     );
+
+    Light* moonlight = new Light(
+        glm::vec3(0.0f, 50.0f, 0.0f),
+        glm::vec3(0.1f, 0.1f, 0.15f),
+        0.3f,
+        1.0f, 0.007f, 0.0002f
+    );
+
     scene->addLight(sunlight);
 
     DrawableObject* ground = new DrawableObject(false);
     if (ground->loadModel("models/plain.h", "plain")) {
         ground->setShader(lambertShader);
         ground->setObjectColor(glm::vec3(0.2f, 0.6f, 0.2f));
-        ground->addStaticTransform(new ScaleTransform(glm::vec3(50.0f, 1.0f, 50.0f)));
+        ground->addStaticTransform(new ScaleTransform(glm::vec3(40.0f, 1.0f, 40.0f)));
         ground->addStaticTransform(new TranslateTransform(glm::vec3(0.0f, 0.0f, 0.0f)));
         scene->addObject(ground);
-        std::cout << "Ground plane loaded!" << std::endl;
     }
     else {
         delete ground;
     }
 
-    std::cout << "Planting trees..." << std::endl;
     int treeCount = 0;
     int bushCount = 0;
 
-    for (int x = -3; x <= 3; x++) {
-        for (int z = -3; z <= 3; z++) {
-            if (x == 0 && z == 0) continue;
+    for (int i = 0; i < 50; i++) {
+        DrawableObject* tree = new DrawableObject(false);
+        if (tree->loadModel("models/tree.h", "tree")) {
+            tree->setShader(lambertShader);
+            tree->setObjectColor(glm::vec3(0.4f, 0.25f, 0.1f));
+            tree->setShininess(16.0f);
 
-            if (randomFloat(0.0f, 1.0f) > 0.3f) {
-                DrawableObject* tree = new DrawableObject(false);
-                if (tree->loadModel("models/tree.h", "tree")) {
-                    tree->setShader(phongShader);
-                    tree->setObjectColor(glm::vec3(0.4f, 0.25f, 0.1f));
-                    tree->setShininess(16.0f);
+            
+            float xPos, zPos;
+            do {
+                xPos = randomFloat(-30.0f, 30.0f);
+                zPos = randomFloat(-30.0f, 30.0f);
+            } while (sqrt(xPos * xPos + zPos * zPos) < 3.0f);
 
-                    float xPos = x * 5.0f + randomFloat(-1.0f, 1.0f);
-                    float zPos = z * 5.0f + randomFloat(-1.0f, 1.0f);
-                    float scale = randomFloat(0.8f, 1.5f);
-                    float rotation = randomFloat(0.0f, 360.0f);
+            float scale = randomFloat(0.8f, 1.5f);
 
-                    tree->addStaticTransform(new TranslateTransform(glm::vec3(xPos, 0.0f, zPos)));
-                    tree->addStaticTransform(new ScaleTransform(glm::vec3(scale, scale, scale)));
-                    tree->addStaticTransform(new RotateTransform(glm::vec3(0.0f, 1.0f, 0.0f), glm::radians(rotation)));
+            float rotation = randomFloat(0.0f, 360.0f);
 
-                    scene->addObject(tree);
-                    treeCount++;
-                }
-                else {
-                    delete tree;
-                }
-            }
+            tree->addStaticTransform(new TranslateTransform(glm::vec3(xPos, 0.0f, zPos)));
+            tree->addStaticTransform(new ScaleTransform(glm::vec3(scale, scale, scale)));
+            tree->addStaticTransform(new RotateTransform(glm::vec3(0.0f, 1.0f, 0.0f), glm::radians(rotation)));
 
-            if (randomFloat(0.0f, 1.0f) > 0.5f) {
-                DrawableObject* bush = new DrawableObject(false);
-                if (bush->loadModel("models/bushes.h", "bushes")) {
-                    bush->setShader(lambertShader);
-                    bush->setObjectColor(glm::vec3(0.1f, 0.5f, 0.1f));
+            scene->addObject(tree);
+            treeCount++;
+        }
+        else {
+            delete tree;
+            std::cerr << "Failed to load tree model!" << std::endl;
+        }
+    }
 
-                    float xPos = x * 5.0f + randomFloat(-2.0f, 2.0f);
-                    float zPos = z * 5.0f + randomFloat(-2.0f, 2.0f);
-                    float scale = randomFloat(0.5f, 1.0f);
+    for (int i = 0; i < 50; i++) {
+        DrawableObject* bush = new DrawableObject(false);
+        if (bush->loadModel("models/bushes.h", "bushes")) {
+            bush->setShader(lambertShader);
+            bush->setObjectColor(glm::vec3(0.1f, 0.5f, 0.1f));
 
-                    bush->addStaticTransform(new TranslateTransform(glm::vec3(xPos, 0.0f, zPos)));
-                    bush->addStaticTransform(new ScaleTransform(glm::vec3(scale, scale, scale)));
+            
+            float xPos, zPos;
+            do {
+                xPos = randomFloat(-30.0f, 30.0f);
+                zPos = randomFloat(-30.0f, 30.0f);
+            } while (sqrt(xPos * xPos + zPos * zPos) < 3.0f);
 
-                    scene->addObject(bush);
-                    bushCount++;
-                }
-                else {
-                    delete bush;
-                }
-            }
+            float scale = randomFloat(0.5f, 1.0f);
+
+            bush->addStaticTransform(new TranslateTransform(glm::vec3(xPos, 0.0f, zPos)));
+            bush->addStaticTransform(new ScaleTransform(glm::vec3(scale, scale, scale)));
+
+            scene->addObject(bush);
+            bushCount++;
+        }
+        else {
+            delete bush;
+            std::cerr << "Failed to load bush model!" << std::endl;
         }
     }
 

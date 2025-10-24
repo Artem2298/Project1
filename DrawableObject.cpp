@@ -58,8 +58,8 @@ bool DrawableObject::loadModel(const std::string& filePath, const std::string& a
         return false;
     }
 
-    std::cout << "Loaded from cache: " << filePath << " - "
-        << modelData->vertices.size() << " floats" << std::endl;
+    //std::cout << "Loaded from cache: " << filePath << " - "
+    //    << modelData->vertices.size() << " floats" << std::endl;
 
     // Load into GPU
     model.loadWithStride(modelData->vertices.data(), modelData->vertices.size(), modelData->stride);

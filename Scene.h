@@ -10,6 +10,8 @@
 #include "Light.h"
 #include "LightObserver.h"
 
+class LightObject;
+
 class Scene : public CameraObserver, public LightObserver
 {
 private:
@@ -27,7 +29,9 @@ public:
     ~Scene();
 
     void addObject(DrawableObject* obj);
+    void addLightObject(LightObject* lightObj);
     void removeObject(DrawableObject* obj);
+
     void clear();
     void update(float deltaTime);
     void render();
@@ -38,9 +42,11 @@ public:
     void addLight(Light* light);
     void removeLight(Light* light);
     const std::vector<Light*>& getLights() const { return lights; }
+    size_t getLightCount() const { return lights.size(); }
 
     void onCameraChanged(Camera* camera) override;
     void onLightChanged(Light* light) override;
+    void onLightDestroyed(Light* light) override;
 
     ShaderProgram* createShader(const std::string& vertexPath, const std::string& fragmentPath);
 

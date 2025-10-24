@@ -59,11 +59,11 @@ bool Shader::checkCompilation()
         (shaderType == GL_FRAGMENT_SHADER) ? "Fragment" :
         (shaderType == GL_GEOMETRY_SHADER) ? "Geometry" : "Unknown";
 
-    std::cout << typeStr << " shader compiled successfully";
-    if (!shaderPath.empty()) {
+    //std::cout << typeStr << " shader compiled successfully";
+    /*if (!shaderPath.empty()) {
         std::cout << " [" << shaderPath << "]";
     }
-    std::cout << "\n";
+    std::cout << "\n";*/
 
     return true;
 }
@@ -104,7 +104,6 @@ void Shader::attachToProgram(GLuint programID)
     if (shaderID != 0 && programID != 0)
     {
         glAttachShader(programID, shaderID);
-        std::cout << "Shader attached to program " << programID << "\n";
     }
     else
     {
@@ -118,7 +117,6 @@ void Shader::deleteShader()
     if (shaderID != 0)
     {
         glDeleteShader(shaderID);
-        std::cout << "Shader " << shaderID << " deleted\n";
         shaderID = 0;
     }
 }

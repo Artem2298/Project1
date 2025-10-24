@@ -6,5 +6,7 @@ class LightObserver
 {
 public:
     virtual ~LightObserver() = default;
+
     virtual void onLightChanged(Light* light) = 0;
+    virtual void onLightDestroyed(Light* light) = 0;
 };

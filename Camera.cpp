@@ -113,8 +113,3 @@ void Camera::setPerspective(float newFov, float newAspect, float newNear, float 
     projectionMatrix = glm::perspective(glm::radians(fov), aspect, near, far);
     notify();
 }
-
-const glm::vec3& Camera::getDirection()
-{
-    return target;
-}

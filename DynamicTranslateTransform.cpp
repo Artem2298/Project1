@@ -2,7 +2,8 @@
 #include <glm/gtc/matrix_transform.hpp>
 
 DynamicTranslateTransform::DynamicTranslateTransform(const glm::vec3& pos, const glm::vec3& vel)
-    : position(pos), velocity(vel)
+    : position(pos)
+    , velocity(vel)
 {
 }
 
@@ -17,10 +18,17 @@ glm::mat4 DynamicTranslateTransform::getMatrix() const
 
 void DynamicTranslateTransform::update(float deltaTime)
 {
-    position += velocity * deltaTime;
+    if (glm::length(velocity) > 0.0001f) {
+        position += velocity * deltaTime;
+    }
 }
 
 void DynamicTranslateTransform::setVelocity(const glm::vec3& vel)
 {
     velocity = vel;
+}
+
+void DynamicTranslateTransform::setPosition(const glm::vec3& pos)
+{
+    position = pos;
 }
