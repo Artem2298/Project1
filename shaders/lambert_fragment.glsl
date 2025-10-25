@@ -1,5 +1,5 @@
 #version 330 core
-#define MAX_LIGHTS 10
+#define MAX_LIGHTS 20
 
 struct Light {
     vec3 position;
@@ -20,26 +20,6 @@ uniform int numLights;
 out vec4 out_Color;
 
 void main() {
-
-    if (numLights > 0) {
-        float distance = length(lights[0].position - worldPosition.xyz);
-        
-        if (distance < 1.0) {
-            out_Color = vec4(1.0, 0.0, 0.0, 1.0);
-        } else if (distance < 2.0) {
-            out_Color = vec4(1.0, 0.5, 0.0, 1.0);
-        } else if (distance < 3.0) {
-            out_Color = vec4(1.0, 1.0, 0.0, 1.0);
-        } else if (distance < 5.0) {
-            out_Color = vec4(0.0, 1.0, 0.0, 1.0);
-        } else if (distance < 10.0) {
-            out_Color = vec4(0.0, 0.5, 1.0, 1.0);
-        } else {
-            out_Color = vec4(0.0, 0.0, 1.0, 1.0);
-        }
-        return;
-    }
-
     vec3 normal = normalize(worldNormal);
     
     vec3 ambient = 0.1 * objectColor;

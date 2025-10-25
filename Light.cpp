@@ -18,16 +18,8 @@ Light::Light(const glm::vec3& position,
 {
 }
 
-//Light::~Light()
-//{
-//    observers.clear();
-//}
-
 Light::~Light()
 {
-    std::cout << "Light: Destroying at ("
-        << position.x << ", " << position.y << ", " << position.z << ")" << std::endl;
-
     notifyDestruction();
 }
 

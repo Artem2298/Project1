@@ -8,29 +8,41 @@ class LightObject : public DrawableObject
 {
 private:
     Light* attachedLight;
-    glm::vec3 orbitCenter;
-    float orbitRadius;
-    float orbitSpeed;
-    float currentAngle;
-    float orbitHeight;
     DynamicTranslateTransform* dynamicTransform;
+
+    glm::vec3 territoryCenter;
+    float territoryRadius;
+    float territoryMinHeight;
+    float territoryMaxHeight;
+
+    glm::vec3 currentPosition;
+    glm::vec3 currentVelocity;
+    float speed;
 
 public:
     LightObject(glm::vec3 center,
         float radius,
+        float minHeight,
+        float maxHeight,
         glm::vec3 lightColor = glm::vec3(1.0f, 1.0f, 0.3f),
-        float lightIntensity = 1.0f,
+        float lightIntensity = 2.0f,
         float constant = 1.0f,
-        float linear = 0.7f,
-        float quadratic = 1.8f);
+        float linear = 0.35f,
+        float quadratic = 0.44f);
 
     ~LightObject();
 
     void update(float deltaTime) override;
 
-    Light* getAttachedLight() { return attachedLight; }
-    const Light* getAttachedLight() const { return attachedLight; }
+    Light* getLight() const { return attachedLight; }
+    void setSpeed(float s) { speed = s; }
+    float getSpeed() const { return speed; }
+    glm::vec3 getPosition() const { return currentPosition; }
 
-    void setOrbitSpeed(float speed) { orbitSpeed = speed; }
-    void setOrbitHeight(float height) { orbitHeight = height; }
+private:
+    bool isOutOfBounds(const glm::vec3& pos) const;
+    glm::vec3 getNewRandomDirection() const;
+    glm::vec3 clampToTerritory(const glm::vec3& pos) const;
+    glm::vec3 getRandomStartPosition() const;
+    float randomFloat(float min, float max) const;
 };

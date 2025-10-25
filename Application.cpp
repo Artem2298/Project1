@@ -226,7 +226,7 @@ void Application::setupScenes()
 void Application::createScene1()
 {
     std::cout << "\n========================================" << std::endl;
-    std::cout << "Creating Scene: One Firefly Test (Circular Motion)" << std::endl;
+    std::cout << "Creating Scene: Firefly Forest" << std::endl;
     std::cout << "========================================\n" << std::endl;
 
     Scene* scene = new Scene();
@@ -241,13 +241,8 @@ void Application::createScene1()
         "shaders/constant_fragment.glsl"
     );
 
-    ShaderProgram* lambertShader = scene->createShader(
-        "shaders/lambert_vertex.glsl",
-        "shaders/lambert_fragment.glsl"
-    );
-
     Camera* camera = new Camera(
-        glm::vec3(0.0f, 5.0f, 15.0f),
+        glm::vec3(0.0f, 8.0f, 20.0f),
         glm::vec3(0.0f, 1.0f, 0.0f),
         glm::vec3(0.0f, 1.0f, 0.0f),
         45.0f,
@@ -257,61 +252,77 @@ void Application::createScene1()
     );
     scene->setCamera(camera);
 
-    /*Light* moonlight = new Light(
+    Light* moonlight = new Light(
         glm::vec3(0.0f, 50.0f, 0.0f),
-        glm::vec3(0.15f, 0.15f, 0.2f),
+        glm::vec3(0.05f, 0.05f, 0.08f),
         0.1f,
         1.0f, 0.007f, 0.0002f
     );
-    scene->addLight(moonlight);*/
+    scene->addLight(moonlight);
 
     DrawableObject* ground = new DrawableObject(false);
     if (ground->loadModel("models/plain.h", "plain")) {
-        ground->setShader(lambertShader);
-        ground->setObjectColor(glm::vec3(0.25f, 0.45f, 0.25f));
-        //ground->setShininess(32.0f);
-        ground->addStaticTransform(new ScaleTransform(glm::vec3(20.0f, 1.0f, 20.0f)));
+        ground->setShader(phongShader);
+        ground->setObjectColor(glm::vec3(0.15f, 0.25f, 0.15f));
+        ground->setShininess(32.0f);
+        ground->addStaticTransform(new ScaleTransform(glm::vec3(30.0f, 1.0f, 30.0f)));
         scene->addObject(ground);
     }
 
     DrawableObject* tree = new DrawableObject(false);
     if (tree->loadModel("models/tree.h", "tree")) {
         tree->setShader(phongShader);
-        tree->setObjectColor(glm::vec3(0.5f, 0.35f, 0.2f));
+        tree->setObjectColor(glm::vec3(0.3f, 0.2f, 0.1f));
         tree->setShininess(16.0f);
         tree->addStaticTransform(new TranslateTransform(glm::vec3(0.0f, 0.0f, 0.0f)));
-        tree->addStaticTransform(new ScaleTransform(glm::vec3(1.0f, 1.0f, 1.0f)));
         scene->addObject(tree);
     }
 
-    // ===== СВЕТЛЯЧОК =====
-    LightObject* firefly = new LightObject(
-        glm::vec3(0.0f, 0.0f, 0.0f),
-        5.0f,                          // Радиус орбиты
-        glm::vec3(1.0f, 1.0f, 0.3f),
-        3.0f,                          // Ярче
-        1.0f, 0.14f, 0.7f            // ← Радиус света ~20м (достаёт до дерева!)
-    );
+    int gridSize = 3;
+    float spacing = 8.0f;
+    float territoryRadius = 3.0f;
 
-    if (firefly->loadModel("models/sphere.h", "sphere")) {
-        firefly->setShader(constantShader);
-        firefly->setObjectColor(glm::vec3(1.0f, 1.0f, 0.3f));
-        firefly->addStaticTransform(new ScaleTransform(glm::vec3(0.05f, 0.05f, 0.05f)));
+    int fireflyCount = 0;
 
-        // Настраиваем скорость вращения
-        firefly->setOrbitSpeed(1.0f);   // 1 радиан/сек (круг за ~6 сек)
-        firefly->setOrbitHeight(0.5f);  // 1.5м высота
+    for (int x = 0; x < gridSize; x++) {
+        for (int z = 0; z < gridSize; z++) {
+            glm::vec3 center(
+                (x - gridSize / 2) * spacing + (rand() % 100 - 50) / 50.0f,
+                0.0f,
+                (z - gridSize / 2) * spacing + (rand() % 100 - 50) / 50.0f
+            );
 
-        scene->addLightObject(firefly);
-        std::cout << "✅ Firefly created!" << std::endl;
+            LightObject* firefly = new LightObject(
+                center,
+                territoryRadius,
+                0.3f,
+                2.5f,
+                glm::vec3(1.0f, 1.0f, 0.3f),
+                2.5f,
+                1.0f, 0.22f, 0.20f
+            );
+
+            if (firefly->loadModel("models/sphere.h", "sphere")) {
+                firefly->setShader(constantShader);
+                firefly->setObjectColor(glm::vec3(1.0f, 1.0f, 0.3f));
+                firefly->addStaticTransform(new ScaleTransform(glm::vec3(0.05f, 0.05f, 0.05f)));
+
+                firefly->setSpeed(1.5f + (rand() % 100) / 100.0f);
+
+                scene->addLightObject(firefly);
+                fireflyCount++;
+                std::cout << "✅ Firefly " << fireflyCount << " created at ("
+                    << center.x << ", " << center.z << ")" << std::endl;
+            }
+            else {
+                delete firefly;
+            }
+        }
     }
-    else {
-        delete firefly;
-    }
 
-    sceneManager.addScene(1, scene);
+    sceneManager.addScene(13, scene);
     std::cout << "\n========================================" << std::endl;
-    std::cout << "Expected: Firefly orbiting around tree" << std::endl;
+    std::cout << "Firefly Forest created with " << fireflyCount << " fireflies" << std::endl;
     std::cout << "========================================\n" << std::endl;
 }
 
@@ -342,7 +353,7 @@ void Application::createScene2()
         glm::vec3(0.0f, 3.0f, 15.0f),
         glm::vec3(0.0f, 0.0f, 0.0f),
         glm::vec3(0.0f, 1.0f, 0.0f),
-        45.0f,
+        130.0f,
         (float)windowWidth / windowHeight,
         0.1f,
         100.0f
@@ -448,6 +459,11 @@ void Application::createScene3()
         "shaders/phong_fragment.glsl"
     );
 
+    ShaderProgram* constantShader = scene->createShader(
+        "shaders/constant_vertex.glsl",
+        "shaders/constant_fragment.glsl"
+    );
+
     Camera* camera = new Camera(
         glm::vec3(0.0f, 5.0f, 20.0f),
         glm::vec3(0.0f, 2.0f, 0.0f),
@@ -468,12 +484,12 @@ void Application::createScene3()
 
     Light* moonlight = new Light(
         glm::vec3(0.0f, 50.0f, 0.0f),
-        glm::vec3(0.1f, 0.1f, 0.15f),
-        0.3f,
+        glm::vec3(0.05f, 0.05f, 0.08f),
+        0.1f,
         1.0f, 0.007f, 0.0002f
     );
 
-    scene->addLight(sunlight);
+    scene->addLight(moonlight);
 
     DrawableObject* ground = new DrawableObject(false);
     if (ground->loadModel("models/plain.h", "plain")) {
@@ -548,8 +564,52 @@ void Application::createScene3()
         }
     }
 
-    std::cout << "Forest created with " << treeCount << " trees and "
-        << bushCount << " bushes!" << std::endl;
+    int gridWidth = 4;
+    int gridHeight = 5;
+    float spacing = 9.0f;
+    float territoryRadius = 3.5f;
+
+    int fireflyCount = 0;
+
+    for (int z = 0; z < gridHeight; z++) {
+        for (int x = 0; x < gridWidth; x++) {
+            float offsetX = (rand() % 200 - 100) / 100.0f;
+            float offsetZ = (rand() % 200 - 100) / 100.0f;
+
+            glm::vec3 center(
+                (x - gridWidth / 2.0f + 0.5f) * spacing + offsetX,
+                0.0f,
+                (z - gridHeight / 2.0f + 0.5f) * spacing + offsetZ
+            );
+
+            float colorVariation = 0.2f + (rand() % 100) / 500.0f;
+            glm::vec3 color(1.0f, 1.0f, colorVariation);
+
+            LightObject* firefly = new LightObject(
+                center,
+                territoryRadius,
+                0.3f,
+                2.8f,
+                color,
+                2.0f + (rand() % 100) / 100.0f,
+                1.0f, 0.22f, 0.20f
+            );
+
+            if (firefly->loadModel("models/sphere.h", "sphere")) {
+                firefly->setShader(constantShader);
+                firefly->setObjectColor(color);
+                firefly->addStaticTransform(new ScaleTransform(glm::vec3(0.05f, 0.05f, 0.05f)));
+
+                firefly->setSpeed(1.2f + (rand() % 150) / 100.0f);
+
+                scene->addLightObject(firefly);
+                fireflyCount++;
+            }
+            else {
+                delete firefly;
+            }
+        }
+    }
 
     sceneManager.addScene(3, scene);
     std::cout << "Scene 3c created!" << std::endl;

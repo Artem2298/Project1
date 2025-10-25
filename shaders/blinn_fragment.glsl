@@ -1,5 +1,5 @@
 #version 330 core
-#define MAX_LIGHTS 10
+#define MAX_LIGHTS 20
 
 struct Light {
     vec3 position;

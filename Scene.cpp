@@ -54,7 +54,7 @@ void Scene::addLightObject(LightObject* lightObj)
 
     objects.push_back(std::unique_ptr<DrawableObject>(lightObj));
 
-    Light* light = lightObj->getAttachedLight();
+    Light* light = lightObj->getLight();
     if (light != nullptr) {
         lights.push_back(light);
 
@@ -154,8 +154,8 @@ void Scene::render()
         }
 
         int numLights = static_cast<int>(lights.size());
-        if (numLights > 10) {
-            numLights = 10;
+        if (numLights > 20) {
+            numLights = 20;
         }
 
         GLint numLightsLoc = shader->getUniformLocation("numLights");
