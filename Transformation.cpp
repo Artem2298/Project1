@@ -31,8 +31,8 @@ void Transformation::addStatic(ITransformComponent* component)
 glm::mat4 Transformation::getMatrix() const
 {
     glm::mat4 result = glm::mat4(1.0f);
-    result = result * staticComponent->getMatrix();
     result = result * dynamicComponent->getMatrix();
+    result = result * staticComponent->getMatrix();
     return result;
 }
 
