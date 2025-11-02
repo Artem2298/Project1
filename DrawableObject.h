@@ -25,6 +25,9 @@ public:
 
     bool loadModel(const std::string& filePath, const std::string& arrayName);
 
+    bool loadModelFromText(const std::string& filePath);
+    bool loadModelFromOBJ(const std::string& filePath);
+
     void addStaticTransform(ITransformComponent* component);
     void addDynamicTransform(ITransformComponent* component);
 

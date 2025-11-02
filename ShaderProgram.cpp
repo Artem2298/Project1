@@ -103,6 +103,11 @@ void ShaderProgram::use() const
     glUseProgram(programID);
 }
 
+void ShaderProgram::unuse() const
+{
+    glUseProgram(0);
+}
+
 GLint ShaderProgram::getUniformLocation(const std::string& name)
 {
     GLint location = glGetUniformLocation(programID, name.c_str());
@@ -115,7 +120,9 @@ void ShaderProgram::onCameraChanged(Camera* camera)
     if (!camera) return;
 
     use();
-    setUniform("viewMatrix", camera->getCamera());
+    
+    
+    ("viewMatrix", camera->getCamera());
     setUniform("projectionMatrix", camera->getProjectionMatrix());
 
 }

@@ -35,16 +35,13 @@ std::shared_ptr<ModelData> ModelCache::loadModel(const std::string& filePath, co
     auto it = cache.find(key);
     if (it != cache.end())
     {
-        //std::cout << "Model cache HIT: " << key << "\n";
         return it->second;
     }
 
-    //std::cout << "Model cache MISS: " << key << " - loading...\n";
     std::vector<float> vertices = loader.loadFromHeader(filePath, arrayName);
 
     if (vertices.empty())
     {
-        //std::cerr << "ERROR: Failed to load model from " << filePath << "\n";
         return nullptr;
     }
 
@@ -59,7 +56,78 @@ std::shared_ptr<ModelData> ModelCache::loadModel(const std::string& filePath, co
     auto modelData = std::make_shared<ModelData>(vertices, vertexCount, stride);
     cache[key] = modelData;
 
-    //std::cout << "Model cached: " << key << " (" << vertexCount << " vertices)\n";
+    return modelData;
+}
+
+std::shared_ptr<ModelData> ModelCache::loadModelFromText(const std::string& filePath)
+{
+    std::string key = "text:" + filePath;
+
+    auto it = cache.find(key);
+    if (it != cache.end())
+    {
+        std::cout << "Model cache HIT: " << key << "\n";
+        return it->second;
+    }
+
+    std::cout << "Model cache MISS: " << key << " - loading from text...\n";
+
+    std::vector<float> vertices = loader.loadFromText(filePath);
+
+    if (vertices.empty())
+    {
+        std::cerr << "ERROR: Failed to load model from text file: " << filePath << "\n";
+        return nullptr;
+    }
+
+    unsigned int stride = 6;
+    unsigned int vertexCount = vertices.size() / stride;
+
+    if (vertices.size() % stride != 0)
+    {
+        std::cerr << "WARNING: Vertex data size not perfectly divisible by " << stride << "\n";
+    }
+
+    auto modelData = std::make_shared<ModelData>(vertices, vertexCount, stride);
+    cache[key] = modelData;
+
+    std::cout << "Model cached: " << key << " (" << vertexCount << " vertices)\n";
+    return modelData;
+}
+
+std::shared_ptr<ModelData> ModelCache::loadModelFromOBJ(const std::string& filePath)
+{
+    std::string key = "obj:" + filePath;
+
+    auto it = cache.find(key);
+    if (it != cache.end())
+    {
+        std::cout << "Model cache HIT: " << key << "\n";
+        return it->second;
+    }
+
+    std::cout << "Model cache MISS: " << key << " - loading from OBJ...\n";
+
+    std::vector<float> vertices = loader.loadFromOBJ(filePath);
+
+    if (vertices.empty())
+    {
+        std::cerr << "ERROR: Failed to load model from OBJ file: " << filePath << "\n";
+        return nullptr;
+    }
+
+    unsigned int stride = 6;
+    unsigned int vertexCount = vertices.size() / stride;
+
+    if (vertices.size() % stride != 0)
+    {
+        std::cerr << "WARNING: Vertex data size not perfectly divisible by " << stride << "\n";
+    }
+
+    auto modelData = std::make_shared<ModelData>(vertices, vertexCount, stride);
+    cache[key] = modelData;
+
+    std::cout << "Model cached: " << key << " (" << vertexCount << " vertices)\n";
     return modelData;
 }
 
@@ -71,9 +139,6 @@ void ModelCache::clear()
 
 void ModelCache::printStats() const
 {
-    std::cout << "=== Model Cache Stats ===\n";
-    std::cout << "Cached models: " << cache.size() << "\n";
-
     size_t totalVertices = 0;
     size_t totalBytes = 0;
 
@@ -81,8 +146,6 @@ void ModelCache::printStats() const
     {
         totalVertices += pair.second->vertexCount;
         totalBytes += pair.second->vertices.size() * sizeof(float);
-        std::cout << "  - " << pair.first << ": "
-            << pair.second->vertexCount << " vertices\n";
     }
 
     std::cout << "Total vertices: " << totalVertices << "\n";

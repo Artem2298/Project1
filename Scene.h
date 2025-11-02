@@ -9,6 +9,7 @@
 #include "CameraObserver.h"
 #include "Light.h"
 #include "LightObserver.h"
+#include "SpotLight.h"
 
 class LightObject;
 
@@ -18,6 +19,7 @@ private:
     std::vector<std::unique_ptr<DrawableObject>> objects;
     std::unique_ptr<Camera> camera;
     std::vector<Light*> lights;
+    SpotLight* spotlight;
 
     std::vector<std::unique_ptr<ShaderProgram>> shaders;
 
@@ -49,6 +51,8 @@ public:
     void onLightDestroyed(Light* light) override;
 
     ShaderProgram* createShader(const std::string& vertexPath, const std::string& fragmentPath);
+
+    void setSpotLight(SpotLight* light);
 
     Camera* getCamera() const { return camera.get(); }
     size_t getObjectCount() const { return objects.size(); }

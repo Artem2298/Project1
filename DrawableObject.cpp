@@ -30,27 +30,11 @@ void DrawableObject::draw()
         return;
     }
 
-    shader->use();
-
-    glm::mat4 modelMatrix = transform.getMatrix();
-    shader->setUniform("modelMatrix", modelMatrix);
-
-    GLint colorLoc = shader->getUniformLocation("objectColor");
-    if (colorLoc != -1) {
-        shader->setUniform("objectColor", objectColor);
-    }
-
-    GLint shininessLoc = shader->getUniformLocation("shininess");
-    if (shininessLoc != -1) {
-        shader->setUniform("shininess", shininess);
-    }
-
     model.draw();
 }
 
 bool DrawableObject::loadModel(const std::string& filePath, const std::string& arrayName)
 {
-    // Use ModelCache to avoid reloading the same file multiple times
     std::shared_ptr<ModelData> modelData = ModelCache::getInstance().loadModel(filePath, arrayName);
 
     if (!modelData || modelData->vertices.empty()) {
@@ -58,12 +42,34 @@ bool DrawableObject::loadModel(const std::string& filePath, const std::string& a
         return false;
     }
 
-    //std::cout << "Loaded from cache: " << filePath << " - "
-    //    << modelData->vertices.size() << " floats" << std::endl;
-
-    // Load into GPU
     model.loadWithStride(modelData->vertices.data(), modelData->vertices.size(), modelData->stride);
 
+    return true;
+}
+
+bool DrawableObject::loadModelFromText(const std::string& filePath)
+{
+    std::shared_ptr<ModelData> modelData = ModelCache::getInstance().loadModelFromText(filePath);
+
+    if (!modelData || modelData->vertices.empty()) {
+        std::cerr << "Failed to load model from text: " << filePath << std::endl;
+        return false;
+    }
+
+    model.loadWithStride(modelData->vertices.data(), modelData->vertices.size(), modelData->stride);
+    return true;
+}
+
+bool DrawableObject::loadModelFromOBJ(const std::string& filePath)
+{
+    std::shared_ptr<ModelData> modelData = ModelCache::getInstance().loadModelFromOBJ(filePath);
+
+    if (!modelData || modelData->vertices.empty()) {
+        std::cerr << "Failed to load model from OBJ: " << filePath << std::endl;
+        return false;
+    }
+
+    model.loadWithStride(modelData->vertices.data(), modelData->vertices.size(), modelData->stride);
     return true;
 }
 

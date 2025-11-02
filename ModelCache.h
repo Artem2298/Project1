@@ -29,6 +29,8 @@ public:
 
     static ModelCache& getInstance();
     std::shared_ptr<ModelData> loadModel(const std::string& filePath, const std::string& arrayName);
+    std::shared_ptr<ModelData> loadModelFromText(const std::string& filePath);
+    std::shared_ptr<ModelData> loadModelFromOBJ(const std::string& filePath);
     void clear();
     void printStats() const;
     static void destroy();

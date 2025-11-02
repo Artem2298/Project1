@@ -10,6 +10,8 @@
 #include <cstdlib>
 #include <ctime>
 #include <glm/gtc/constants.hpp>
+#include "SpotLight.h"
+#include "SpotLightTracker.h"
 
 Application* Application::s_instance = nullptr;
 
@@ -225,10 +227,6 @@ void Application::setupScenes()
 
 void Application::createScene1()
 {
-    std::cout << "\n========================================" << std::endl;
-    std::cout << "Creating Scene: Firefly Forest" << std::endl;
-    std::cout << "========================================\n" << std::endl;
-
     Scene* scene = new Scene();
 
     ShaderProgram* phongShader = scene->createShader(
@@ -243,7 +241,7 @@ void Application::createScene1()
 
     Camera* camera = new Camera(
         glm::vec3(0.0f, 8.0f, 20.0f),
-        glm::vec3(0.0f, 1.0f, 0.0f),
+        glm::vec3(0.0f, 8.0f, 0.0f),
         glm::vec3(0.0f, 1.0f, 0.0f),
         45.0f,
         (float)windowWidth / windowHeight,
@@ -258,22 +256,56 @@ void Application::createScene1()
         0.1f,
         1.0f, 0.007f, 0.0002f
     );
+
+    Light* sunlight = new Light(
+        glm::vec3(10.0f, 50.0f, 10.0f),
+        glm::vec3(1.0f, 0.95f, 0.8f),
+        2.0f,
+        1.0f, 0.001f, 0.000001f
+    );
+
     scene->addLight(moonlight);
 
+    SpotLight* flashlight = new SpotLight(
+        camera->getEye(),                 // Позиция камеры
+        camera->getTarget(),              // Направление камеры
+        glm::vec3(1.0f, 1.0f, 0.9f),     // Теплый белый свет
+        10.0f,                            // Яркий!
+        10.0f,                            // Внутренний угол
+        20.0f,                            // Внешний угол
+        1.0f,                             // constant
+        0.022f,                            // linear
+        0.019f                            // quadratic
+    );
+
+    scene->setSpotLight(flashlight);
+
+    SpotLightTracker* tracker = new SpotLightTracker(flashlight);
+    camera->attach(tracker);
+
     DrawableObject* ground = new DrawableObject(false);
-    if (ground->loadModel("models/plain.h", "plain")) {
+    if(ground->loadModelFromText("models/plain.txt")) {
         ground->setShader(phongShader);
         ground->setObjectColor(glm::vec3(0.15f, 0.25f, 0.15f));
-        ground->setShininess(32.0f);
         ground->addStaticTransform(new ScaleTransform(glm::vec3(30.0f, 1.0f, 30.0f)));
         scene->addObject(ground);
+    }
+
+    DrawableObject* car = new DrawableObject(false);
+    if (car->loadModelFromOBJ("models/formula1.obj")) {
+        car->setShader(phongShader);
+        car->setObjectColor(glm::vec3(0.8f, 0.2f, 0.4f));
+        car->setShininess(64.0f);
+        car->addStaticTransform(new ScaleTransform(glm::vec3(0.25f, 0.25f, 0.25f)));
+        car->addStaticTransform(new TranslateTransform(glm::vec3(30.0f, 0.0f, 30.0f)));
+        scene->addObject(car);
     }
 
     DrawableObject* tree = new DrawableObject(false);
     if (tree->loadModel("models/tree.h", "tree")) {
         tree->setShader(phongShader);
         tree->setObjectColor(glm::vec3(0.3f, 0.2f, 0.1f));
-        tree->setShininess(16.0f);
+        tree->setShininess(96.0f);
         tree->addStaticTransform(new TranslateTransform(glm::vec3(0.0f, 0.0f, 0.0f)));
         scene->addObject(tree);
     }
@@ -311,8 +343,6 @@ void Application::createScene1()
 
                 scene->addLightObject(firefly);
                 fireflyCount++;
-                std::cout << "✅ Firefly " << fireflyCount << " created at ("
-                    << center.x << ", " << center.z << ")" << std::endl;
             }
             else {
                 delete firefly;
@@ -320,10 +350,7 @@ void Application::createScene1()
         }
     }
 
-    sceneManager.addScene(13, scene);
-    std::cout << "\n========================================" << std::endl;
-    std::cout << "Firefly Forest created with " << fireflyCount << " fireflies" << std::endl;
-    std::cout << "========================================\n" << std::endl;
+    sceneManager.addScene(1, scene);
 }
 
 void Application::createScene2()
@@ -353,7 +380,7 @@ void Application::createScene2()
         glm::vec3(0.0f, 3.0f, 15.0f),
         glm::vec3(0.0f, 0.0f, 0.0f),
         glm::vec3(0.0f, 1.0f, 0.0f),
-        130.0f,
+        45.0f,
         (float)windowWidth / windowHeight,
         0.1f,
         100.0f
@@ -387,7 +414,7 @@ void Application::createScene2()
 
 
     DrawableObject* sphere1 = new DrawableObject(false);
-    if (sphere1->loadModel("models/sphere.h", "sphere")) {
+    if (sphere1->loadModelFromText("models/sphere.txt")) {
         sphere1->setShader(phongShader);
         sphere1->setObjectColor(glm::vec3(0.2f, 0.2f, 0.8f));
         sphere1->addStaticTransform(new TranslateTransform(glm::vec3(-3.0f, 0.0f, 0.0f)));
@@ -489,10 +516,27 @@ void Application::createScene3()
         1.0f, 0.007f, 0.0002f
     );
 
+    SpotLight* flashlight = new SpotLight(
+        camera->getEye(),                 // Позиция камеры
+        camera->getTarget(),              // Направление камеры
+        glm::vec3(1.0f, 1.0f, 0.9f),     // Теплый белый свет
+        10.0f,                            // Яркий!
+        10.0f,                            // Внутренний угол
+        20.0f,                            // Внешний угол
+        1.0f,                             // constant
+        0.022f,                            // linear
+        0.019f                            // quadratic
+    );
+
+    scene->setSpotLight(flashlight);
+
+    SpotLightTracker* tracker = new SpotLightTracker(flashlight);
+    camera->attach(tracker);
+
     scene->addLight(moonlight);
 
     DrawableObject* ground = new DrawableObject(false);
-    if (ground->loadModel("models/plain.h", "plain")) {
+    if (ground->loadModelFromText("models/plain.txt")) {
         ground->setShader(lambertShader);
         ground->setObjectColor(glm::vec3(0.2f, 0.6f, 0.2f));
         ground->addStaticTransform(new ScaleTransform(glm::vec3(40.0f, 1.0f, 40.0f)));

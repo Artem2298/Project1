@@ -34,6 +34,8 @@ public:
     bool link();
 
     void use() const;
+    void unuse() const;
+
     GLint getUniformLocation(const std::string& name);
 
     void setUniform(const std::string& name, float value);

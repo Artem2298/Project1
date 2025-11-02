@@ -5,7 +5,8 @@
 
 Scene::Scene()
     : viewMatrix(glm::mat4(1.0f)),
-    projectionMatrix(glm::mat4(1.0f))
+    projectionMatrix(glm::mat4(1.0f)),
+    spotlight(nullptr)
 {
     std::cout << "Scene created\n";
 }
@@ -139,10 +140,8 @@ void Scene::render()
 
         glm::mat4 modelMatrix = obj->getModelMatrix();
         glm::mat3 normalMatrix = glm::transpose(glm::inverse(glm::mat3(modelMatrix)));
-
         shader->setUniform("modelMatrix", modelMatrix);
         shader->setUniform("normalMatrix", normalMatrix);
-
         shader->setUniform("viewMatrix", viewMatrix);
         shader->setUniform("projectionMatrix", projectionMatrix);
 
@@ -169,6 +168,16 @@ void Scene::render()
             }
         }
 
+        if (spotlight) {
+            spotlight->applyToShader(*shader, "spotlight");
+        }
+        else {
+            GLint spotlightEnabledLoc = shader->getUniformLocation("spotlight.enabled");
+            if (spotlightEnabledLoc != -1) {
+                shader->setUniform("spotlight.enabled", 0);
+            }
+        }
+
         GLint objectColorLoc = shader->getUniformLocation("objectColor");
         if (objectColorLoc != -1) {
             shader->setUniform("objectColor", obj->getObjectColor());
@@ -180,6 +189,7 @@ void Scene::render()
         }
 
         obj->draw();
+        shader->unuse();
     }
 }
 
@@ -271,4 +281,10 @@ ShaderProgram* Scene::createShader(const std::string& vertexPath, const std::str
 
     shaders.push_back(std::move(shader));
     return shaders.back().get();
+}
+
+void Scene::setSpotLight(SpotLight* light)
+{
+    spotlight = light;
+    std::cout << "? SpotLight added to scene" << std::endl;
 }
