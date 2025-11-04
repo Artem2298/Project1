@@ -5,6 +5,9 @@
 
 ShaderProgram::ShaderProgram()
     : programID(0)
+    , attribPosition(-1)
+    , attribNormal(-1)
+    , attribTexCoord(-1)
 {
     programID = glCreateProgram();
 }
@@ -71,7 +74,14 @@ bool ShaderProgram::addShaderFromSource(GLenum type, const std::string& sourceCo
 bool ShaderProgram::link()
 {
     glLinkProgram(programID);
-    return checkLinking();
+
+    if (!checkLinking()) {
+        return false;
+    }
+
+    queryAttributeLocations();
+
+    return true;
 }
 
 bool ShaderProgram::checkLinking()
@@ -98,6 +108,13 @@ bool ShaderProgram::checkLinking()
     return true;
 }
 
+void ShaderProgram::queryAttributeLocations()
+{
+    attribPosition = glGetAttribLocation(programID, "vp");
+    attribNormal = glGetAttribLocation(programID, "vn");
+    attribTexCoord = glGetAttribLocation(programID, "vt");
+}
+
 void ShaderProgram::use() const
 {
     glUseProgram(programID);
@@ -111,7 +128,6 @@ void ShaderProgram::unuse() const
 GLint ShaderProgram::getUniformLocation(const std::string& name)
 {
     GLint location = glGetUniformLocation(programID, name.c_str());
-
     return location;
 }
 
@@ -120,11 +136,8 @@ void ShaderProgram::onCameraChanged(Camera* camera)
     if (!camera) return;
 
     use();
-    
-    
-    ("viewMatrix", camera->getCamera());
+    setUniform("viewMatrix", camera->getCamera());
     setUniform("projectionMatrix", camera->getProjectionMatrix());
-
 }
 
 void ShaderProgram::setUniform(const std::string& name, float value)

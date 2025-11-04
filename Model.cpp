@@ -1,4 +1,5 @@
 #include "Model.h"
+#include "ShaderProgram.h"
 
 Model::Model()
     : VAO(0), VBO(0), vertexCount(0), stride(3), isLoaded(false)
@@ -10,60 +11,76 @@ Model::~Model()
     cleanup();
 }
 
-void Model::loadWithStride(const float* vertices, unsigned int vertexCount, GLuint vertexSize)
+void Model::loadWithStride(const float* vertices, unsigned int count, GLuint vertexSize, ShaderProgram* shader)
 {
-    if (!vertices || vertexCount == 0 || vertexSize == 0)
-    {
-        std::cerr << "ERROR: Invalid vertices, vertexCount, or vertexSize\n";
+    if (vertices == nullptr || count == 0) {
+        std::cerr << "Model::loadWithStride() - Invalid vertex data!" << std::endl;
         return;
     }
 
-    if (isLoaded)
-        cleanup();
-
-    GLuint actualVertexCount = vertexCount / vertexSize;
-
-    this->vertexCount = actualVertexCount;
+    this->vertexCount = count;
     this->stride = vertexSize;
 
-    GLuint totalFloats = vertexCount;
-
-    //std::cout << "Loading model: " << totalFloats << " floats = "
-    //    << actualVertexCount << " vertices (stride=" << vertexSize << ")" << std::endl;
-
-    glGenBuffers(1, &VBO);
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, totalFloats * sizeof(float), vertices, GL_STATIC_DRAW);
-
     glGenVertexArrays(1, &VAO);
+    glGenBuffers(1, &VBO);
+
     glBindVertexArray(VAO);
-
-    GLuint strideBytes = vertexSize * sizeof(float);
-
-    glEnableVertexAttribArray(0);
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, strideBytes, (GLvoid*)0);
 
-    if (vertexSize >= 6)
-    {
-        glEnableVertexAttribArray(1);
-        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, strideBytes, (GLvoid*)(3 * sizeof(float)));
+    glBufferData(GL_ARRAY_BUFFER, count * sizeof(float), vertices, GL_STATIC_DRAW);
+
+    if (shader != nullptr) {
+        GLint positionLoc = shader->getPositionAttribLocation();
+        GLint normalLoc = shader->getNormalAttribLocation();
+
+        if (positionLoc != -1) {
+            glEnableVertexAttribArray(positionLoc);
+            glVertexAttribPointer(
+                positionLoc,                    
+                3,                            
+                GL_FLOAT,                       
+                GL_FALSE,                      
+                stride * sizeof(float),
+                (void*)0
+            );
+        }
+        else {
+            std::cout << "   ??  Position attribute not found in shader" << std::endl;
+        }
+
+        if (normalLoc != -1 && stride >= 6) {
+            glEnableVertexAttribArray(normalLoc);
+            glVertexAttribPointer(
+                normalLoc,
+                3,
+                GL_FLOAT,
+                GL_FALSE,
+                stride * sizeof(float),
+                (void*)(3 * sizeof(float))
+            );
+        }
+        else if (normalLoc != -1) {
+            std::cout << "   ??  Normal attribute found but stride too small" << std::endl;
+        }
+
+    }
+    else {
+        std::cout << "??  Model::loadWithStride() - No shader provided, using legacy hardcoded locations" << std::endl;
+
+        glEnableVertexAttribArray(0);
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, stride * sizeof(float), (void*)0);
+
+        if (stride >= 6) {
+            glEnableVertexAttribArray(1);
+            glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, stride * sizeof(float), (void*)(3 * sizeof(float)));
+        }
     }
 
-    if (vertexSize >= 8)
-    {
-        glEnableVertexAttribArray(2);
-        glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, strideBytes, (GLvoid*)(6 * sizeof(float)));
-    }
-
-    glBindVertexArray(0);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
 
     isLoaded = true;
-
-    //std::cout << "Model loaded successfully: " << actualVertexCount << " vertices\n";
 }
-
 void Model::load(const float* vertices, unsigned int vertexCount)
 {
     loadWithStride(vertices, vertexCount, 3);

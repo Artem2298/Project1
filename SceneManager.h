@@ -16,6 +16,6 @@ public:
 
     void addScene(int sceneID, Scene* scene);
     void switchScene(int sceneID);
-    Scene* getCurrentScene() const { return currentScene; }
+    Scene* getCurrentScene() const;
     int getCurrentSceneID() const { return currentSceneID; }
 };

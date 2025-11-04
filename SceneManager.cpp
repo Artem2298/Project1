@@ -44,3 +44,12 @@ void SceneManager::switchScene(int sceneID)
 
     std::cout << "Switched to scene " << sceneID << "\n";
 }
+
+Scene* SceneManager::getCurrentScene() const
+{
+    auto it = scenes.find(currentSceneID);
+    if (it != scenes.end()) {
+        return it->second.get();
+    }
+    return nullptr;
+}

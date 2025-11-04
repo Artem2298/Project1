@@ -48,8 +48,7 @@ void Application::key_callback(GLFWwindow* window, int key, int scancode, int ac
         if (key == GLFW_KEY_ESCAPE) {
             glfwSetWindowShouldClose(window, GLFW_TRUE);
         }
-
-        if (key == GLFW_KEY_1) {
+        else if (key == GLFW_KEY_1) {
             app->sceneManager.switchScene(1);
             std::cout << "Switched to Scene 1: Triangle Test" << std::endl;
         }
@@ -64,6 +63,23 @@ void Application::key_callback(GLFWwindow* window, int key, int scancode, int ac
         else if (key == GLFW_KEY_4) {
             app->sceneManager.switchScene(4);
             std::cout << "Switched to Scene 4: Solar System" << std::endl;
+        }
+        else if (key == GLFW_KEY_F) {
+            Scene* currentScene = app->sceneManager.getCurrentScene();
+            if (currentScene) {
+                SpotLight* flashlight = currentScene->getSpotLight();
+                if (flashlight) {
+                    bool currentState = flashlight->isEnabled();
+                    flashlight->setEnabled(!currentState);
+
+                    std::cout << "\n🔦 Flashlight: "
+                        << (flashlight->isEnabled() ? "ON ✅" : "OFF ❌")
+                        << std::endl;
+                }
+                else {
+                    std::cout << "⚠️  No flashlight in current scene!" << std::endl;
+                }
+            }
         }
     }
 }
@@ -284,16 +300,18 @@ void Application::createScene1()
     camera->attach(tracker);
 
     DrawableObject* ground = new DrawableObject(false);
+    ground->setShader(phongShader);
+
     if(ground->loadModelFromText("models/plain.txt")) {
-        ground->setShader(phongShader);
         ground->setObjectColor(glm::vec3(0.15f, 0.25f, 0.15f));
         ground->addStaticTransform(new ScaleTransform(glm::vec3(30.0f, 1.0f, 30.0f)));
         scene->addObject(ground);
     }
 
     DrawableObject* car = new DrawableObject(false);
+    car->setShader(phongShader);
+
     if (car->loadModelFromOBJ("models/formula1.obj")) {
-        car->setShader(phongShader);
         car->setObjectColor(glm::vec3(0.8f, 0.2f, 0.4f));
         car->setShininess(64.0f);
         car->addStaticTransform(new ScaleTransform(glm::vec3(0.25f, 0.25f, 0.25f)));
@@ -302,8 +320,9 @@ void Application::createScene1()
     }
 
     DrawableObject* tree = new DrawableObject(false);
+    tree->setShader(phongShader);
+
     if (tree->loadModel("models/tree.h", "tree")) {
-        tree->setShader(phongShader);
         tree->setObjectColor(glm::vec3(0.3f, 0.2f, 0.1f));
         tree->setShininess(96.0f);
         tree->addStaticTransform(new TranslateTransform(glm::vec3(0.0f, 0.0f, 0.0f)));
@@ -334,13 +353,12 @@ void Application::createScene1()
                 1.0f, 0.22f, 0.20f
             );
 
+            firefly->setShader(constantShader);
+
             if (firefly->loadModel("models/sphere.h", "sphere")) {
-                firefly->setShader(constantShader);
                 firefly->setObjectColor(glm::vec3(1.0f, 1.0f, 0.3f));
                 firefly->addStaticTransform(new ScaleTransform(glm::vec3(0.05f, 0.05f, 0.05f)));
-
                 firefly->setSpeed(1.5f + (rand() % 100) / 100.0f);
-
                 scene->addLightObject(firefly);
                 fireflyCount++;
             }
@@ -414,8 +432,9 @@ void Application::createScene2()
 
 
     DrawableObject* sphere1 = new DrawableObject(false);
+    sphere1->setShader(phongShader);
+
     if (sphere1->loadModelFromText("models/sphere.txt")) {
-        sphere1->setShader(phongShader);
         sphere1->setObjectColor(glm::vec3(0.2f, 0.2f, 0.8f));
         sphere1->addStaticTransform(new TranslateTransform(glm::vec3(-3.0f, 0.0f, 0.0f)));
         sphere1->addStaticTransform(new ScaleTransform(glm::vec3(1.5f, 1.5f, 1.5f)));
@@ -427,8 +446,9 @@ void Application::createScene2()
     }
 
     DrawableObject* sphere2 = new DrawableObject(false);
+    sphere2->setShader(phongShader);
+
     if (sphere2->loadModel("models/sphere.h", "sphere")) {
-        sphere2->setShader(phongShader);
         sphere2->setObjectColor(glm::vec3(0.2f, 0.2f, 0.8f));
         sphere2->addStaticTransform(new TranslateTransform(glm::vec3(0.0f, 3.0f, 0.0f)));
         sphere2->addStaticTransform(new ScaleTransform(glm::vec3(1.5f, 1.5f, 1.5f)));
@@ -440,8 +460,9 @@ void Application::createScene2()
     }
 
     DrawableObject* sphere3 = new DrawableObject(false);
+    sphere3->setShader(phongShader);
+
     if (sphere3->loadModel("models/sphere.h", "sphere")) {
-        sphere3->setShader(phongShader);
         sphere3->setObjectColor(glm::vec3(0.2f, 0.2f, 0.8f));
         sphere3->setShininess(32.0f);
         sphere3->addStaticTransform(new TranslateTransform(glm::vec3(3.0f, 0.0f, 0.0f)));
@@ -454,8 +475,9 @@ void Application::createScene2()
     }
 
     DrawableObject* sphere4 = new DrawableObject(false);
+    sphere4->setShader(phongShader);
+
     if (sphere4->loadModel("models/sphere.h", "sphere")) {
-        sphere4->setShader(phongShader);
         sphere4->setObjectColor(glm::vec3(0.2f, 0.2f, 0.8f));
         sphere4->setShininess(100.0f);
         sphere4->addStaticTransform(new TranslateTransform(glm::vec3(0.0f, -3.0f, 0.0f)));
@@ -517,15 +539,15 @@ void Application::createScene3()
     );
 
     SpotLight* flashlight = new SpotLight(
-        camera->getEye(),                 // Позиция камеры
-        camera->getTarget(),              // Направление камеры
-        glm::vec3(1.0f, 1.0f, 0.9f),     // Теплый белый свет
-        10.0f,                            // Яркий!
-        10.0f,                            // Внутренний угол
-        20.0f,                            // Внешний угол
-        1.0f,                             // constant
-        0.022f,                            // linear
-        0.019f                            // quadratic
+        camera->getEye(),               
+        camera->getTarget(),              
+        glm::vec3(1.0f, 1.0f, 0.9f),    
+        10.0f,                           
+        10.0f,                           
+        20.0f,                           
+        1.0f,                            
+        0.022f,                           
+        0.019f                           
     );
 
     scene->setSpotLight(flashlight);
@@ -536,8 +558,9 @@ void Application::createScene3()
     scene->addLight(moonlight);
 
     DrawableObject* ground = new DrawableObject(false);
+    ground->setShader(lambertShader);
+
     if (ground->loadModelFromText("models/plain.txt")) {
-        ground->setShader(lambertShader);
         ground->setObjectColor(glm::vec3(0.2f, 0.6f, 0.2f));
         ground->addStaticTransform(new ScaleTransform(glm::vec3(40.0f, 1.0f, 40.0f)));
         ground->addStaticTransform(new TranslateTransform(glm::vec3(0.0f, 0.0f, 0.0f)));
@@ -552,8 +575,9 @@ void Application::createScene3()
 
     for (int i = 0; i < 50; i++) {
         DrawableObject* tree = new DrawableObject(false);
+        tree->setShader(lambertShader);
+
         if (tree->loadModel("models/tree.h", "tree")) {
-            tree->setShader(lambertShader);
             tree->setObjectColor(glm::vec3(0.4f, 0.25f, 0.1f));
             tree->setShininess(16.0f);
 
@@ -583,8 +607,9 @@ void Application::createScene3()
 
     for (int i = 0; i < 50; i++) {
         DrawableObject* bush = new DrawableObject(false);
+        bush->setShader(lambertShader);
+
         if (bush->loadModel("models/bushes.h", "bushes")) {
-            bush->setShader(lambertShader);
             bush->setObjectColor(glm::vec3(0.1f, 0.5f, 0.1f));
 
             
@@ -639,8 +664,9 @@ void Application::createScene3()
                 1.0f, 0.22f, 0.20f
             );
 
+            firefly->setShader(constantShader);
+
             if (firefly->loadModel("models/sphere.h", "sphere")) {
-                firefly->setShader(constantShader);
                 firefly->setObjectColor(color);
                 firefly->addStaticTransform(new ScaleTransform(glm::vec3(0.05f, 0.05f, 0.05f)));
 
@@ -695,8 +721,9 @@ void Application::createScene4()
     scene->addLight(sunLight);
 
     DrawableObject* sun = new DrawableObject(false);
+    sun->setShader(constantShader);
+
     if (sun->loadModel("models/sphere.h", "sphere")) {
-        sun->setShader(constantShader);
         sun->setObjectColor(glm::vec3(1.0f, 0.9f, 0.2f));
         sun->addStaticTransform(new ScaleTransform(glm::vec3(3.0f, 3.0f, 3.0f)));
         scene->addObject(sun);
@@ -707,8 +734,9 @@ void Application::createScene4()
     }
 
     DrawableObject* earth = new DrawableObject(true);
+    earth->setShader(phongShader);
+
     if (earth->loadModel("models/sphere.h", "sphere")) {
-        earth->setShader(phongShader);
         earth->setObjectColor(glm::vec3(0.2f, 0.4f, 0.8f));
         earth->setShininess(32.0f);
 
@@ -726,8 +754,9 @@ void Application::createScene4()
     }
 
     DrawableObject* moon = new DrawableObject(true);
+    moon->setShader(blinnShader);
+
     if (moon->loadModel("models/sphere.h", "sphere")) {
-        moon->setShader(blinnShader);
         moon->setObjectColor(glm::vec3(0.7f, 0.7f, 0.7f));
         moon->setShininess(16.0f);
 

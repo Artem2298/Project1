@@ -42,7 +42,7 @@ bool DrawableObject::loadModel(const std::string& filePath, const std::string& a
         return false;
     }
 
-    model.loadWithStride(modelData->vertices.data(), modelData->vertices.size(), modelData->stride);
+    model.loadWithStride(modelData->vertices.data(), modelData->vertices.size(), modelData->stride, shader);
 
     return true;
 }
@@ -56,7 +56,7 @@ bool DrawableObject::loadModelFromText(const std::string& filePath)
         return false;
     }
 
-    model.loadWithStride(modelData->vertices.data(), modelData->vertices.size(), modelData->stride);
+    model.loadWithStride(modelData->vertices.data(), modelData->vertices.size(), modelData->stride, shader);
     return true;
 }
 
@@ -69,7 +69,7 @@ bool DrawableObject::loadModelFromOBJ(const std::string& filePath)
         return false;
     }
 
-    model.loadWithStride(modelData->vertices.data(), modelData->vertices.size(), modelData->stride);
+    model.loadWithStride(modelData->vertices.data(), modelData->vertices.size(), modelData->stride, shader);
     return true;
 }
 

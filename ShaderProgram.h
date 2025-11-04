@@ -18,12 +18,17 @@ private:
     GLuint programID;
     std::vector<std::unique_ptr<Shader>> shaders;
 
+    GLint attribPosition;  
+    GLint attribNormal;
+    GLint attribTexCoord;
+
     bool checkLinking();
+
+    void queryAttributeLocations();
 
 public:
     ShaderProgram();
     ~ShaderProgram();
-
 
     bool loadFromFiles(const std::string& vertexPath,
         const std::string& fragmentPath);
@@ -53,4 +58,8 @@ public:
     void onCameraChanged(Camera* camera) override;
 
     GLuint getID() const { return programID; }
+
+    GLint getPositionAttribLocation() const { return attribPosition; }
+    GLint getNormalAttribLocation() const { return attribNormal; }
+    GLint getTexCoordAttribLocation() const { return attribTexCoord; }
 };

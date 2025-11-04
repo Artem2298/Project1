@@ -4,14 +4,16 @@
 #include <glm/vec3.hpp>
 #include <iostream>
 
+class ShaderProgram;
+
 class Model
 {
 private:
-    GLuint VAO;           
-    GLuint VBO;           
+    GLuint VAO;
+    GLuint VBO;
     GLuint vertexCount;
     GLuint stride;
-    bool isLoaded;        
+    bool isLoaded;
 
 public:
     Model();
@@ -21,7 +23,7 @@ public:
 
     void load(const std::vector<glm::vec3>& vertices);
 
-    void loadWithStride(const float* vertices, unsigned int vertexCount, GLuint vertexSize);
+    void loadWithStride(const float* vertices, unsigned int vertexCount, GLuint vertexSize, ShaderProgram* shader = nullptr);
 
     void draw() const;
 

@@ -153,13 +153,6 @@ std::vector<float> ModelLoader::loadFromOBJ(const std::string& filePath)
             index_offset += fv;
         }
     }
-
-    std::cout << "ModelLoader: Loaded " << (vertices.size() / 6) << " vertices from OBJ" << std::endl;
-    std::cout << "  Shapes: " << shapes.size() << std::endl;
-    std::cout << "  Materials: " << materials.size() << std::endl;
-    std::cout << "  Total vertices in file: " << attrib.vertices.size() / 3 << std::endl;
-    std::cout << "  Total normals in file: " << attrib.normals.size() / 3 << std::endl;
-
     return vertices;
 }
 

@@ -62,4 +62,5 @@ public:
     void setProjectionMatrix(const glm::mat4& proj) { projectionMatrix = proj; }
     const glm::mat4& getViewMatrix() const { return viewMatrix; }
     const glm::mat4& getProjectionMatrix() const { return projectionMatrix; }
+    SpotLight* getSpotLight() const { return spotlight; }
 };
