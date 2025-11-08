@@ -1,4 +1,4 @@
-#include "Model.h"
+﻿#include "Model.h"
 #include "ShaderProgram.h"
 
 Model::Model()
@@ -23,29 +23,28 @@ void Model::loadWithStride(const float* vertices, unsigned int count, GLuint ver
 
     glGenVertexArrays(1, &VAO);
     glGenBuffers(1, &VBO);
-
     glBindVertexArray(VAO);
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
-
     glBufferData(GL_ARRAY_BUFFER, count * sizeof(float), vertices, GL_STATIC_DRAW);
 
     if (shader != nullptr) {
         GLint positionLoc = shader->getPositionAttribLocation();
         GLint normalLoc = shader->getNormalAttribLocation();
+        GLint texCoordLoc = shader->getTexCoordAttribLocation();
 
         if (positionLoc != -1) {
             glEnableVertexAttribArray(positionLoc);
             glVertexAttribPointer(
-                positionLoc,                    
-                3,                            
-                GL_FLOAT,                       
-                GL_FALSE,                      
+                positionLoc,
+                3,
+                GL_FLOAT,
+                GL_FALSE,
                 stride * sizeof(float),
                 (void*)0
             );
         }
         else {
-            std::cout << "   ??  Position attribute not found in shader" << std::endl;
+            std::cout << "   ⚠️  Position attribute not found in shader" << std::endl;
         }
 
         if (normalLoc != -1 && stride >= 6) {
@@ -60,12 +59,28 @@ void Model::loadWithStride(const float* vertices, unsigned int count, GLuint ver
             );
         }
         else if (normalLoc != -1) {
-            std::cout << "   ??  Normal attribute found but stride too small" << std::endl;
+            std::cout << "   ⚠️  Normal attribute found but stride too small" << std::endl;
+        }
+
+        if (texCoordLoc != -1 && stride >= 8) {
+            glEnableVertexAttribArray(texCoordLoc);
+            glVertexAttribPointer(
+                texCoordLoc,
+                2,
+                GL_FLOAT,
+                GL_FALSE,
+                stride * sizeof(float),
+                (void*)(6 * sizeof(float))
+            );
+            std::cout << "   ✅ TexCoord attribute configured" << std::endl;
+        }
+        else if (texCoordLoc != -1) {
+            std::cout << "   ℹ️  TexCoord attribute found but stride too small (need 8, have " << stride << ")" << std::endl;
         }
 
     }
     else {
-        std::cout << "??  Model::loadWithStride() - No shader provided, using legacy hardcoded locations" << std::endl;
+        std::cout << "⚠️  Model::loadWithStride() - No shader provided, using legacy hardcoded locations" << std::endl;
 
         glEnableVertexAttribArray(0);
         glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, stride * sizeof(float), (void*)0);
@@ -74,6 +89,11 @@ void Model::loadWithStride(const float* vertices, unsigned int count, GLuint ver
             glEnableVertexAttribArray(1);
             glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, stride * sizeof(float), (void*)(3 * sizeof(float)));
         }
+
+        if (stride >= 8) {
+            glEnableVertexAttribArray(2);
+            glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, stride * sizeof(float), (void*)(6 * sizeof(float)));
+        }
     }
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -81,6 +101,7 @@ void Model::loadWithStride(const float* vertices, unsigned int count, GLuint ver
 
     isLoaded = true;
 }
+
 void Model::load(const float* vertices, unsigned int vertexCount)
 {
     loadWithStride(vertices, vertexCount, 3);

@@ -63,23 +63,40 @@ std::vector<float> ModelLoader::loadFromText(const std::string& filePath)
 
         std::istringstream iss(cleaned);
         float x, y, z, nx, ny, nz;
+        float u = 0.0f, v = 0.0f;
 
-        if (iss >> x >> y >> z >> nx >> ny >> nz) {
+        if (iss >> x >> y >> z >> nx >> ny >> nz >> u >> v) {
             vertices.push_back(x);
             vertices.push_back(y);
             vertices.push_back(z);
             vertices.push_back(nx);
             vertices.push_back(ny);
             vertices.push_back(nz);
+            vertices.push_back(u);
+            vertices.push_back(v);
         }
         else {
-            std::cerr << "WARNING: Invalid format at line " << lineNumber << ": " << line << std::endl;
+            iss.clear();
+            iss.seekg(0);
+            if (iss >> x >> y >> z >> nx >> ny >> nz) {
+                vertices.push_back(x);
+                vertices.push_back(y);
+                vertices.push_back(z);
+                vertices.push_back(nx);
+                vertices.push_back(ny);
+                vertices.push_back(nz);
+                vertices.push_back(0.0f);
+                vertices.push_back(0.0f);
+            }
+            else {
+                std::cerr << "WARNING: Invalid format at line " << lineNumber << ": " << line << std::endl;
+            }
         }
     }
 
     file.close();
 
-    std::cout << "ModelLoader: Loaded " << (vertices.size() / 6) << " vertices from text file" << std::endl;
+    std::cout << "ModelLoader: Loaded " << (vertices.size() / 8) << " vertices from text file (stride: 8)" << std::endl;
 
     return vertices;
 }
@@ -105,11 +122,9 @@ std::vector<float> ModelLoader::loadFromOBJ(const std::string& filePath)
     if (!warn.empty()) {
         std::cout << "TinyOBJ Warning: " << warn << std::endl;
     }
-
     if (!err.empty()) {
         std::cerr << "TinyOBJ Error: " << err << std::endl;
     }
-
     if (!ret) {
         std::cerr << "ERROR: Failed to load OBJ file: " << filePath << std::endl;
         return std::vector<float>();
@@ -119,7 +134,6 @@ std::vector<float> ModelLoader::loadFromOBJ(const std::string& filePath)
 
     for (size_t s = 0; s < shapes.size(); s++) {
         size_t index_offset = 0;
-
         for (size_t f = 0; f < shapes[s].mesh.num_face_vertices.size(); f++) {
             size_t fv = shapes[s].mesh.num_face_vertices[f];
 
@@ -129,7 +143,6 @@ std::vector<float> ModelLoader::loadFromOBJ(const std::string& filePath)
                 tinyobj::real_t vx = attrib.vertices[3 * idx.vertex_index + 0];
                 tinyobj::real_t vy = attrib.vertices[3 * idx.vertex_index + 1];
                 tinyobj::real_t vz = attrib.vertices[3 * idx.vertex_index + 2];
-
                 vertices.push_back(vx);
                 vertices.push_back(vy);
                 vertices.push_back(vz);
@@ -138,7 +151,6 @@ std::vector<float> ModelLoader::loadFromOBJ(const std::string& filePath)
                     tinyobj::real_t nx = attrib.normals[3 * idx.normal_index + 0];
                     tinyobj::real_t ny = attrib.normals[3 * idx.normal_index + 1];
                     tinyobj::real_t nz = attrib.normals[3 * idx.normal_index + 2];
-
                     vertices.push_back(nx);
                     vertices.push_back(ny);
                     vertices.push_back(nz);
@@ -148,11 +160,22 @@ std::vector<float> ModelLoader::loadFromOBJ(const std::string& filePath)
                     vertices.push_back(1.0f);
                     vertices.push_back(0.0f);
                 }
-            }
 
+                if (idx.texcoord_index >= 0) {
+                    tinyobj::real_t tx = attrib.texcoords[2 * idx.texcoord_index + 0];
+                    tinyobj::real_t ty = attrib.texcoords[2 * idx.texcoord_index + 1];
+                    vertices.push_back(tx);
+                    vertices.push_back(ty);
+                }
+                else {
+                    vertices.push_back(0.0f);
+                    vertices.push_back(0.0f);
+                }
+            }
             index_offset += fv;
         }
     }
+
     return vertices;
 }
 

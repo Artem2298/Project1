@@ -3,6 +3,7 @@
 #include "Transformation.h"
 #include "ShaderProgram.h"
 #include "ModelLoader.h"
+#include "Texture.h"
 #include <glm/vec3.hpp>
 
 class DrawableObject
@@ -15,6 +16,8 @@ protected:
 
     glm::vec3 objectColor;
     float shininess;
+
+    Texture* texture;
 
 public:
     DrawableObject(bool isDynamic = false);
@@ -47,4 +50,7 @@ public:
     const Model& getModel() const { return model; }
 
     glm::mat4 getModelMatrix() const { return transform.getMatrix(); }
+
+    void setTexture(Texture* tex) { texture = tex; }
+    Texture* getTexture() const { return texture; }
 };

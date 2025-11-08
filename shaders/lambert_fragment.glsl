@@ -29,6 +29,7 @@ struct SpotLight {
 
 in vec4 worldPosition;
 in vec3 worldNormal;
+in vec2 TexCoord;
 
 uniform vec3 objectColor;
 
@@ -37,12 +38,25 @@ uniform int numLights;
 
 uniform SpotLight spotlight;
 
+uniform sampler2D textureUnitID;
+uniform int useTexture;
+
 out vec4 out_Color;
 
 void main() {
+
     vec3 normal = normalize(worldNormal);
     
-    vec3 ambient = 0.1 * objectColor;
+    vec3 baseColor;
+    if (useTexture == 1) {
+        vec4 texColor = texture(textureUnitID, TexCoord);
+        baseColor = texColor.rgb;
+    } else {
+        baseColor = objectColor;
+    }
+    
+    vec3 ambient = 0.1 * baseColor;
+    
     vec3 totalDiffuse = vec3(0.0);
     
     for(int i = 0; i < numLights; i++) {
@@ -54,7 +68,7 @@ void main() {
                                    lights[i].quadratic * distance * distance);
         
         float diff = max(dot(normal, lightDir), 0.0);
-        vec3 diffuse = attenuation * diff * lights[i].color * lights[i].intensity * objectColor;
+        vec3 diffuse = attenuation * diff * lights[i].color * lights[i].intensity * baseColor;
         
         totalDiffuse += diffuse;
     }
@@ -74,7 +88,7 @@ void main() {
                                        spotlight.quadratic * distance * distance);
             
             float diff = max(dot(normal, lightDir), 0.0);
-            vec3 diffuse = attenuation * intensity * diff * spotlight.color * spotlight.intensity * objectColor;
+            vec3 diffuse = attenuation * intensity * diff * spotlight.color * spotlight.intensity * baseColor;
             
             totalDiffuse += diffuse;
         }

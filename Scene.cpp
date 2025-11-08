@@ -2,6 +2,7 @@
 #include "LightObject.h"
 #include <algorithm>
 #include <iostream>
+#include "Texture.h"
 
 Scene::Scene()
     : viewMatrix(glm::mat4(1.0f)),
@@ -140,6 +141,7 @@ void Scene::render()
 
         glm::mat4 modelMatrix = obj->getModelMatrix();
         glm::mat3 normalMatrix = glm::transpose(glm::inverse(glm::mat3(modelMatrix)));
+
         shader->setUniform("modelMatrix", modelMatrix);
         shader->setUniform("normalMatrix", normalMatrix);
         shader->setUniform("viewMatrix", viewMatrix);
@@ -188,11 +190,36 @@ void Scene::render()
             shader->setUniform("shininess", obj->getShininess());
         }
 
+        Texture* texture = obj->getTexture();
+        if (texture != nullptr && texture->isTextureLoaded()) {
+            texture->bind(0);
+
+            GLint textureLoc = shader->getUniformLocation("textureUnitID");
+            if (textureLoc != -1) {
+                shader->setUniform("textureUnitID", 0);
+            }
+
+            GLint useTextureLoc = shader->getUniformLocation("useTexture");
+            if (useTextureLoc != -1) {
+                shader->setUniform("useTexture", 1);
+            }
+        }
+        else {
+            GLint useTextureLoc = shader->getUniformLocation("useTexture");
+            if (useTextureLoc != -1) {
+                shader->setUniform("useTexture", 0);
+            }
+        }
+
         obj->draw();
+
+        if (texture != nullptr && texture->isTextureLoaded()) {
+            texture->unbind();
+        }
+
         shader->unuse();
     }
 }
-
 void Scene::setCamera(Camera* newCamera)
 {
     if (camera)

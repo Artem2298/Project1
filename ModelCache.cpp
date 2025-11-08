@@ -80,18 +80,11 @@ std::shared_ptr<ModelData> ModelCache::loadModelFromText(const std::string& file
         return nullptr;
     }
 
-    unsigned int stride = 6;
-    unsigned int vertexCount = vertices.size() / stride;
-
-    if (vertices.size() % stride != 0)
-    {
-        std::cerr << "WARNING: Vertex data size not perfectly divisible by " << stride << "\n";
-    }
-
-    auto modelData = std::make_shared<ModelData>(vertices, vertexCount, stride);
+    auto modelData = std::make_shared<ModelData>(vertices, vertices.size(), 8);
     cache[key] = modelData;
 
-    std::cout << "Model cached: " << key << " (" << vertexCount << " vertices)\n";
+    std::cout << "Model cached: " << key << " (" << modelData->vertexCount << " vertices)" << std::endl;
+
     return modelData;
 }
 
@@ -116,12 +109,13 @@ std::shared_ptr<ModelData> ModelCache::loadModelFromOBJ(const std::string& fileP
         return nullptr;
     }
 
-    unsigned int stride = 6;
+    unsigned int stride = 8;
     unsigned int vertexCount = vertices.size() / stride;
 
     if (vertices.size() % stride != 0)
     {
-        std::cerr << "WARNING: Vertex data size not perfectly divisible by " << stride << "\n";
+        std::cerr << "WARNING: Vertex data size not perfectly divisible by " << stride
+            << " (size: " << vertices.size() << ")\n";
     }
 
     auto modelData = std::make_shared<ModelData>(vertices, vertexCount, stride);

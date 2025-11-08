@@ -12,6 +12,7 @@
 #include <glm/gtc/constants.hpp>
 #include "SpotLight.h"
 #include "SpotLightTracker.h"
+#include "Texture.h"
 
 Application* Application::s_instance = nullptr;
 
@@ -255,6 +256,41 @@ void Application::createScene1()
         "shaders/constant_fragment.glsl"
     );
 
+    ShaderProgram* lambertShader = scene->createShader(
+        "shaders/lambert_vertex.glsl",
+        "shaders/lambert_fragment.glsl"
+    );
+
+
+    Texture* grassTexture = new Texture();
+    if (!grassTexture->loadFromFile("texture/grass.png")) {
+        std::cerr << "Failed to load grass texture!" << std::endl;
+        delete grassTexture;
+        grassTexture = nullptr;
+    }
+
+    Texture* woodTexture = new Texture();
+    if (!woodTexture->loadFromFile("texture/wooden_fence.png")) {
+        std::cerr << "Failed to load wooden fence texture!" << std::endl;
+        delete woodTexture;
+        woodTexture = nullptr;
+    }
+
+    Texture* shrekTexture = new Texture();
+    if (!shrekTexture->loadFromFile("texture/shrek.png")) {
+        std::cerr << "Failed to load shrekTexture fence texture!" << std::endl;
+        delete shrekTexture;
+        shrekTexture = nullptr;
+    }
+
+    Texture* fionaTexture = new Texture();
+    if (!fionaTexture->loadFromFile("texture/fiona.png")) {
+        std::cerr << "Failed to load fionaTexture fence texture!" << std::endl;
+        delete fionaTexture;
+        fionaTexture = nullptr;
+    }
+
+
     Camera* camera = new Camera(
         glm::vec3(0.0f, 8.0f, 20.0f),
         glm::vec3(0.0f, 8.0f, 0.0f),
@@ -266,6 +302,7 @@ void Application::createScene1()
     );
     scene->setCamera(camera);
 
+
     Light* moonlight = new Light(
         glm::vec3(0.0f, 50.0f, 0.0f),
         glm::vec3(0.05f, 0.05f, 0.08f),
@@ -273,25 +310,19 @@ void Application::createScene1()
         1.0f, 0.007f, 0.0002f
     );
 
-    Light* sunlight = new Light(
-        glm::vec3(10.0f, 50.0f, 10.0f),
-        glm::vec3(1.0f, 0.95f, 0.8f),
-        2.0f,
-        1.0f, 0.001f, 0.000001f
-    );
-
     scene->addLight(moonlight);
 
+
     SpotLight* flashlight = new SpotLight(
-        camera->getEye(),                 // Позиция камеры
-        camera->getTarget(),              // Направление камеры
-        glm::vec3(1.0f, 1.0f, 0.9f),     // Теплый белый свет
-        10.0f,                            // Яркий!
-        10.0f,                            // Внутренний угол
-        20.0f,                            // Внешний угол
-        1.0f,                             // constant
-        0.022f,                            // linear
-        0.019f                            // quadratic
+        camera->getEye(),
+        camera->getTarget(),
+        glm::vec3(1.0f, 1.0f, 0.9f),
+        10.0f,
+        10.0f,
+        20.0f,
+        1.0f,
+        0.022f,
+        0.019f
     );
 
     scene->setSpotLight(flashlight);
@@ -299,40 +330,106 @@ void Application::createScene1()
     SpotLightTracker* tracker = new SpotLightTracker(flashlight);
     camera->attach(tracker);
 
-    DrawableObject* ground = new DrawableObject(false);
-    ground->setShader(phongShader);
 
-    if(ground->loadModelFromText("models/plain.txt")) {
-        ground->setObjectColor(glm::vec3(0.15f, 0.25f, 0.15f));
+    DrawableObject* ground = new DrawableObject(false);
+    ground->setShader(lambertShader);
+
+    if (ground->loadModelFromText("models/plain_with_uv.txt")) {
+        ground->setTexture(grassTexture);
         ground->addStaticTransform(new ScaleTransform(glm::vec3(30.0f, 1.0f, 30.0f)));
         scene->addObject(ground);
     }
 
+    DrawableObject* shrek = new DrawableObject(false);
+    shrek->setShader(lambertShader);
+
+    if (shrek->loadModelFromOBJ("models/shrek.obj")) {
+        shrek->setTexture(shrekTexture);
+        shrek->addStaticTransform(new TranslateTransform(glm::vec3(-9.0f, 0.0f, 0.0f)));
+        shrek->addStaticTransform(new ScaleTransform(glm::vec3(2.0f, 2.0f, 2.0f)));
+        scene->addObject(shrek);
+    }
+
+    DrawableObject* fiona = new DrawableObject(false);
+    fiona->setShader(lambertShader);
+
+    if (fiona->loadModelFromOBJ("models/fiona.obj")) {
+        fiona->setTexture(fionaTexture);
+        fiona->addStaticTransform(new TranslateTransform(glm::vec3(-5.0f, 0.0f, 0.0f)));
+        fiona->addStaticTransform(new ScaleTransform(glm::vec3(2.0f, 2.0f, 2.0f)));
+        fiona->addDynamicTransform(new DynamicRotateTransform(glm::vec3(0.0f, 1.0f, 0.0f), 60.0f));
+        scene->addObject(fiona);
+    }
+
+
+    DrawableObject* cubeFront = new DrawableObject(false);
+    cubeFront->setShader(lambertShader);
+    if (cubeFront->loadModelFromText("models/square.txt")) {
+        cubeFront->setTexture(woodTexture);
+        cubeFront->setShininess(32.0f);
+        cubeFront->addStaticTransform(new TranslateTransform(glm::vec3(0.0f, 2.0f, 0.0f)));
+        cubeFront->addStaticTransform(new ScaleTransform(glm::vec3(2.0f, 2.0f, 2.0f)));
+        scene->addObject(cubeFront);
+    }
+
+    DrawableObject* cubeRight = new DrawableObject(false);
+    cubeRight->setShader(lambertShader);
+    if (cubeRight->loadModelFromText("models/square.txt")) {
+        cubeRight->setTexture(woodTexture);
+        cubeRight->setShininess(32.0f);
+        cubeRight->addStaticTransform(new TranslateTransform(glm::vec3(1.0f, 2.0f, 1.0f)));
+        cubeRight->addStaticTransform(new RotateTransform(glm::vec3(0.0f, 1.0f, 0.0f), 270.0f));
+        cubeRight->addStaticTransform(new ScaleTransform(glm::vec3(2.0f, 2.0f, 2.0f)));
+        scene->addObject(cubeRight);
+    }
+
+    DrawableObject* cubeLeft = new DrawableObject(false);
+    cubeLeft->setShader(lambertShader);
+    if (cubeLeft->loadModelFromText("models/square.txt")) {
+        cubeLeft->setTexture(woodTexture);
+        cubeLeft->setShininess(32.0f);
+        cubeLeft->addStaticTransform(new TranslateTransform(glm::vec3(-1.0f, 2.0f, 1.0f)));
+        cubeLeft->addStaticTransform(new RotateTransform(glm::vec3(0.0f, 1.0f, 0.0f), 90.0f));
+        cubeLeft->addStaticTransform(new ScaleTransform(glm::vec3(2.0f, 2.0f, 2.0f)));
+        scene->addObject(cubeLeft);
+    }
+
+    DrawableObject* cubeBottom = new DrawableObject(false);
+    cubeBottom->setShader(lambertShader);
+    if (cubeBottom->loadModelFromText("models/square.txt")) {
+        cubeBottom->setTexture(woodTexture);
+        cubeBottom->setShininess(32.0f);
+        cubeBottom->addStaticTransform(new TranslateTransform(glm::vec3(0.0f, 1.0f, 1.0f)));
+        cubeBottom->addStaticTransform(new RotateTransform(glm::vec3(1.0f, 0.0f, 0.0f), 270.0f));
+        cubeBottom->addStaticTransform(new ScaleTransform(glm::vec3(2.0f, 2.0f, 2.0f)));
+        scene->addObject(cubeBottom);
+    }
+
+    
     DrawableObject* car = new DrawableObject(false);
     car->setShader(phongShader);
-
     if (car->loadModelFromOBJ("models/formula1.obj")) {
         car->setObjectColor(glm::vec3(0.8f, 0.2f, 0.4f));
         car->setShininess(64.0f);
+        car->addStaticTransform(new TranslateTransform(glm::vec3(10.0f, 0.0f, 10.0f)));
         car->addStaticTransform(new ScaleTransform(glm::vec3(0.25f, 0.25f, 0.25f)));
-        car->addStaticTransform(new TranslateTransform(glm::vec3(30.0f, 0.0f, 30.0f)));
         scene->addObject(car);
     }
 
+
     DrawableObject* tree = new DrawableObject(false);
     tree->setShader(phongShader);
-
     if (tree->loadModel("models/tree.h", "tree")) {
         tree->setObjectColor(glm::vec3(0.3f, 0.2f, 0.1f));
         tree->setShininess(96.0f);
-        tree->addStaticTransform(new TranslateTransform(glm::vec3(0.0f, 0.0f, 0.0f)));
+        tree->addStaticTransform(new TranslateTransform(glm::vec3(5.0f, 0.0f, 5.0f)));
         scene->addObject(tree);
     }
+
 
     int gridSize = 3;
     float spacing = 8.0f;
     float territoryRadius = 3.0f;
-
     int fireflyCount = 0;
 
     for (int x = 0; x < gridSize; x++) {
@@ -359,6 +456,7 @@ void Application::createScene1()
                 firefly->setObjectColor(glm::vec3(1.0f, 1.0f, 0.3f));
                 firefly->addStaticTransform(new ScaleTransform(glm::vec3(0.05f, 0.05f, 0.05f)));
                 firefly->setSpeed(1.5f + (rand() % 100) / 100.0f);
+
                 scene->addLightObject(firefly);
                 fireflyCount++;
             }
@@ -369,6 +467,12 @@ void Application::createScene1()
     }
 
     sceneManager.addScene(1, scene);
+
+    std::cout << "\n========================================" << std::endl;
+    std::cout << "🪵 Wooden Cube Demo Scene Created!" << std::endl;
+    std::cout << "   Fireflies: " << fireflyCount << std::endl;
+    std::cout << "   Press F to toggle flashlight" << std::endl;
+    std::cout << "========================================\n" << std::endl;
 }
 
 void Application::createScene2()
@@ -634,7 +738,7 @@ void Application::createScene3()
     }
 
     int gridWidth = 4;
-    int gridHeight = 5;
+    int gridHeight = 3;
     float spacing = 9.0f;
     float territoryRadius = 3.5f;
 
