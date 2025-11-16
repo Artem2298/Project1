@@ -46,4 +46,9 @@ public:
     const glm::vec3& getEye() const { return eye; }
     const glm::vec3& getUp() const { return up; }
     const glm::vec3& getTarget() { return target; }
+
+    float getFov() const { return fov; }
+    float getAspect() const { return aspect; }
+    float getNear() const { return near; }
+    float getFar() const { return far; }
 };

@@ -7,9 +7,9 @@
 Scene::Scene()
     : viewMatrix(glm::mat4(1.0f)),
     projectionMatrix(glm::mat4(1.0f)),
-    spotlight(nullptr)
+    spotlight(nullptr),
+    nextObjectID(1)
 {
-    std::cout << "Scene created\n";
 }
 
 Scene::~Scene()
@@ -94,6 +94,11 @@ void Scene::addObject(DrawableObject* obj)
         std::cerr << "ERROR: Cannot add nullptr to scene\n";
         return;
     }
+
+    obj->setID(nextObjectID);
+    std::cout << "Object added with ID: " << nextObjectID << std::endl;
+    nextObjectID++;
+
     objects.push_back(std::unique_ptr<DrawableObject>(obj));
 }
 
@@ -130,6 +135,10 @@ void Scene::update(float deltaTime)
 
 void Scene::render()
 {
+
+    glEnable(GL_STENCIL_TEST);
+    glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
+
     for (auto& obj : objects) {
         if (obj->getShader() == nullptr) {
             std::cerr << "Scene::render() - Object has no shader!" << std::endl;
@@ -138,6 +147,8 @@ void Scene::render()
 
         ShaderProgram* shader = obj->getShader();
         shader->use();
+
+        glStencilFunc(GL_ALWAYS, obj->getID(), 0xFF);
 
         glm::mat4 modelMatrix = obj->getModelMatrix();
         glm::mat3 normalMatrix = glm::transpose(glm::inverse(glm::mat3(modelMatrix)));
@@ -219,7 +230,10 @@ void Scene::render()
 
         shader->unuse();
     }
+
+    glDisable(GL_STENCIL_TEST);
 }
+
 void Scene::setCamera(Camera* newCamera)
 {
     if (camera)
@@ -314,4 +328,85 @@ void Scene::setSpotLight(SpotLight* light)
 {
     spotlight = light;
     std::cout << "? SpotLight added to scene" << std::endl;
+}
+
+DrawableObject* Scene::findObjectByID(int id)
+{
+    for (auto& obj : objects)
+    {
+        if (obj->getID() == id)
+        {
+            return obj.get();
+        }
+    }
+    return nullptr;
+}
+
+void Scene::putTree(const glm::vec3& position)
+{
+    DrawableObject* tree = new DrawableObject();
+
+    if (!shaders.empty()) {
+        tree->setShader(shaders[0].get());
+    }
+    else {
+        std::cerr << "No shaders available in scene!" << std::endl;
+        delete tree;
+        return;
+    }
+
+    if (!tree->loadModel("models/tree.h", "tree")) {
+        std::cerr << "Failed to load tree model!" << std::endl;
+        delete tree;
+        return;
+    }
+
+    tree->setObjectColor(glm::vec3(0.3f, 0.2f, 0.1f));
+    tree->setShininess(32.0f);
+
+    tree->addStaticTransform(new TranslateTransform(position));
+
+    addObject(tree);
+}
+
+void Scene::putTeren(const glm::vec3& position)
+{
+    DrawableObject* teren = new DrawableObject();
+
+    if (!shaders.empty()) {
+        teren->setShader(shaders[0].get());
+    }
+    else {
+        std::cerr << "No shaders available in scene!" << std::endl;
+        delete teren;
+        return;
+    }
+
+    if (!teren->loadModelFromOBJ("models/teren.obj")) {
+        std::cerr << "Failed to load teren.obj model!" << std::endl;
+        delete teren;
+        return;
+    }
+
+    Texture* grassTexture = new Texture();
+    if (grassTexture->loadFromFile("texture/grass.png")) {
+        teren->setTexture(grassTexture);
+        std::cout << "Grass texture loaded for terrain" << std::endl;
+    }
+    else {
+        std::cerr << "Failed to load grass.png texture, using default color" << std::endl;
+        teren->setObjectColor(glm::vec3(0.2f, 0.6f, 0.2f));
+        delete grassTexture;
+    }
+
+    teren->setShininess(32.0f);
+
+    teren->addStaticTransform(new TranslateTransform(position));
+
+    addObject(teren);
+
+    std::cout << "?? Terrain placed at position: ("
+        << position.x << ", "
+        << position.y << ", "
+        << position.z << ")" << std::endl;
 }

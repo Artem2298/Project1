@@ -63,3 +63,4 @@ public:
     GLint getNormalAttribLocation() const { return attribNormal; }
     GLint getTexCoordAttribLocation() const { return attribTexCoord; }
 };
+

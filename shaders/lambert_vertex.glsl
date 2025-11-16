@@ -14,7 +14,8 @@ out vec3 worldNormal;
 out vec2 TexCoord;
 
 void main() {
-    worldPosition = modelMatrix * vec4(vp, 1.0);
+    const float w = 200;
+    worldPosition = (modelMatrix * vec4(vp, 1.0) * w) / w;
     worldNormal = normalize(normalMatrix * vn);
     TexCoord = vt;
     

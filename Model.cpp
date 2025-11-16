@@ -102,31 +102,31 @@ void Model::loadWithStride(const float* vertices, unsigned int count, GLuint ver
     isLoaded = true;
 }
 
-void Model::load(const float* vertices, unsigned int vertexCount)
-{
-    loadWithStride(vertices, vertexCount, 3);
-}
-
-void Model::load(const std::vector<glm::vec3>& vertices)
-{
-    if (vertices.empty())
-    {
-        std::cerr << "ERROR: Empty vertices vector\n";
-        return;
-    }
-
-    std::vector<float> vertexData;
-    vertexData.reserve(vertices.size() * 3);
-
-    for (const auto& vertex : vertices)
-    {
-        vertexData.push_back(vertex.x);
-        vertexData.push_back(vertex.y);
-        vertexData.push_back(vertex.z);
-    }
-
-    load(vertexData.data(), vertices.size());
-}
+//void Model::load(const float* vertices, unsigned int vertexCount)
+//{
+//    loadWithStride(vertices, vertexCount, 3);
+//}
+//
+//void Model::load(const std::vector<glm::vec3>& vertices)
+//{
+//    if (vertices.empty())
+//    {
+//        std::cerr << "ERROR: Empty vertices vector\n";
+//        return;
+//    }
+//
+//    std::vector<float> vertexData;
+//    vertexData.reserve(vertices.size() * 3);
+//
+//    for (const auto& vertex : vertices)
+//    {
+//        vertexData.push_back(vertex.x);
+//        vertexData.push_back(vertex.y);
+//        vertexData.push_back(vertex.z);
+//    }
+//
+//    load(vertexData.data(), vertices.size());
+//}
 
 void Model::draw() const
 {

@@ -9,6 +9,7 @@
 #include "CameraObserver.h"
 #include "Light.h"
 #include "LightObserver.h"
+#include "TranslateTransform.h"
 #include "SpotLight.h"
 
 class LightObject;
@@ -25,6 +26,8 @@ private:
 
     glm::mat4 viewMatrix;
     glm::mat4 projectionMatrix;
+
+    int nextObjectID;
 
 public:
     Scene();
@@ -54,6 +57,11 @@ public:
 
     void setSpotLight(SpotLight* light);
 
+    DrawableObject* findObjectByID(int id);
+
+    void putTree(const glm::vec3& position);
+    void putTeren(const glm::vec3& position);
+
     Camera* getCamera() const { return camera.get(); }
     size_t getObjectCount() const { return objects.size(); }
     DrawableObject* getObject(size_t index);
@@ -63,4 +71,5 @@ public:
     const glm::mat4& getViewMatrix() const { return viewMatrix; }
     const glm::mat4& getProjectionMatrix() const { return projectionMatrix; }
     SpotLight* getSpotLight() const { return spotlight; }
+
 };

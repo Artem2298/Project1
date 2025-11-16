@@ -171,8 +171,10 @@ bool Application::initGLFW()
 
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+    glfwWindowHint(GLFW_RESIZABLE, GL_TRUE);
+    glfwWindowHint(GLFW_STENCIL_BITS, 8);
 
     window = glfwCreateWindow(windowWidth, windowHeight, windowTitle, NULL, NULL);
     if (!window)
@@ -310,7 +312,14 @@ void Application::createScene1()
         1.0f, 0.007f, 0.0002f
     );
 
-    scene->addLight(moonlight);
+    Light* sunlight = new Light(
+        glm::vec3(10.0f, 50.0f, 10.0f),
+        glm::vec3(1.0f, 0.95f, 0.8f),
+        2.0f,
+        1.0f, 0.001f, 0.000001f
+    );
+
+    scene->addLight(sunlight);
 
 
     SpotLight* flashlight = new SpotLight(
@@ -684,7 +693,6 @@ void Application::createScene3()
         if (tree->loadModel("models/tree.h", "tree")) {
             tree->setObjectColor(glm::vec3(0.4f, 0.25f, 0.1f));
             tree->setShininess(16.0f);
-
             
             float xPos, zPos;
             do {
@@ -922,7 +930,7 @@ void Application::run()
 
         processInput(deltaTime);
 
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
         if (currentScene) {
             currentScene->render();
@@ -948,14 +956,74 @@ void Application::mouse_button_callback(GLFWwindow* window, int button, int acti
     Application* app = s_instance;
     if (!app) return;
 
-    if (button == GLFW_MOUSE_BUTTON_RIGHT) {
-        if (action == GLFW_PRESS) {
-            app->rightMousePressed = true;
-            glfwGetCursorPos(window, &app->lastMouseX, &app->lastMouseY);
+    if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS)
+    {
+        double xpos, ypos;
+        glfwGetCursorPos(window, &xpos, &ypos);
+
+        GLint x = static_cast<GLint>(xpos);
+        GLint y = static_cast<GLint>(ypos);
+
+        int newY = app->windowHeight - y;
+
+        GLfloat depth;
+        GLuint index;
+
+        glReadPixels(x, newY, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &depth);
+        glReadPixels(x, newY, 1, 1, GL_STENCIL_INDEX, GL_UNSIGNED_INT, &index);
+
+        if (index == 1) {
+            Scene* scene = app->sceneManager.getCurrentScene();
+            if (!scene) {
+                std::cerr << "No active scene!" << std::endl;
+                return;
+            }
+
+            Camera* camera = scene->getCamera();
+            if (!camera) {
+                std::cerr << "No camera in scene!" << std::endl;
+                return;
+            }
+
+            glm::mat4 viewMatrix = camera->getCamera();
+            glm::mat4 projectionMatrix = camera->getProjectionMatrix();
+            glm::vec4 viewport = glm::vec4(0, 0, app->windowWidth, app->windowHeight);
+
+            glm::vec3 worldPos = glm::unProject(
+                glm::vec3(x, newY, depth),
+                viewMatrix,
+                projectionMatrix,
+                viewport
+            );
+
+            //scene->putTree(worldPos);
+            scene->putTeren(worldPos);
+
+            printf("\n-------- teren PLANTED --------\n");
+            printf("World position: (%.2f, %.2f, %.2f)\n",
+                worldPos.x, worldPos.y, worldPos.z);
+            printf("------------------------------\n");
         }
-        else if (action == GLFW_RELEASE) {
-            app->rightMousePressed = false;
+        else if (index > 1) {
+            printf("\n-----------------------------\n");
+            printf("|Screen position: (%d, %d)\n", x, y);
+            printf("|OpenGL position: (%d, %d)\n", x, newY);
+            printf("|Depth: %f\n", depth);
+            printf("|Object ID: %u\n", index);
+            printf("-----------------------------\n\n");
         }
+    }
+
+    
+
+    if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS)
+    {
+        app->rightMousePressed = true;
+        glfwGetCursorPos(window, &app->lastMouseX, &app->lastMouseY);
+    }
+    else if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_RELEASE)
+    {
+        app->rightMousePressed = false;
     }
 }
 

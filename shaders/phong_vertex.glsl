@@ -1,8 +1,8 @@
 #version 330 core
 
-in vec3 vp;  // vertex position
-in vec3 vn;  // vertex normal
-in vec2 vt;  // vertex texcoord
+in vec3 vp;
+in vec3 vn;
+in vec2 vt;
 
 uniform mat4 modelMatrix;
 uniform mat4 viewMatrix;
@@ -11,12 +11,13 @@ uniform mat3 normalMatrix;
 
 out vec4 worldPosition;
 out vec3 worldNormal;
-out vec2 uv;
+out vec2 TexCoord;
 
 void main() {
-    worldPosition = modelMatrix * vec4(vp, 1.0);
+    const float w = 200;
+    worldPosition = (modelMatrix * vec4(vp, 1.0) * w) / w;
     worldNormal = normalize(normalMatrix * vn);
-    uv = vt;
+    TexCoord = vt;
     
     gl_Position = projectionMatrix * viewMatrix * worldPosition;
 }

@@ -13,11 +13,13 @@ protected:
     Transformation transform;
     ModelLoader modelLoader;
     ShaderProgram* shader;
+    int objectID;
 
     glm::vec3 objectColor;
     float shininess;
 
     Texture* texture;
+
 
 public:
     DrawableObject(bool isDynamic = false);
@@ -53,4 +55,7 @@ public:
 
     void setTexture(Texture* tex) { texture = tex; }
     Texture* getTexture() const { return texture; }
+
+    void setID(int id) { objectID = id; }
+    int getID() const { return objectID; }
 };

@@ -19,9 +19,9 @@ public:
     Model();
     ~Model();
 
-    void load(const float* vertices, unsigned int vertexCount);
+    //void load(const float* vertices, unsigned int vertexCount);
 
-    void load(const std::vector<glm::vec3>& vertices);
+    //void load(const std::vector<glm::vec3>& vertices);
 
     void loadWithStride(const float* vertices, unsigned int vertexCount, GLuint vertexSize, ShaderProgram* shader = nullptr);
 
