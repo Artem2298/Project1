@@ -242,6 +242,6 @@ std::vector<float> ModelLoader::parseFloatArray(const std::string& content, cons
         }
     }
 
-    std::cout << "Loaded array '" << arrayName << "': " << result.size() << " floats\n";
+    std::cout << "\nLoaded array '" << arrayName << "': " << result.size() << " floats\n";
     return result;
 }

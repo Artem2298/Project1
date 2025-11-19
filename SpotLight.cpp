@@ -23,7 +23,7 @@ SpotLight::SpotLight(const glm::vec3& position,
     , quadratic(quadratic)
     , enabled(true)
 {
-    std::cout << "SpotLight created at position: ("
+    std::cout << "\nSpotLight created at position: ("
         << position.x << ", " << position.y << ", " << position.z << ")" << std::endl;
 }
 

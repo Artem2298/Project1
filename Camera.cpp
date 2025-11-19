@@ -1,4 +1,6 @@
 #define GLM_ENABLE_EXPERIMENTAL
+#include <GL/glew.h>
+#include <GLFW/glfw3.h>  
 #include "Camera.h"
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/string_cast.hpp>
@@ -22,7 +24,7 @@ Camera::Camera(const glm::vec3& eye, const glm::vec3& targetPoint, const glm::ve
     updateViewMatrix();
     projectionMatrix = glm::perspective(glm::radians(fov), aspect, near, far);
 
-    std::cout << "Camera initialized at position: ("
+    std::cout << "\nCamera initialized at position: ("
         << eye.x << ", " << eye.y << ", " << eye.z << ")" << std::endl;
     std::cout << "Camera direction: ("
         << target.x << ", " << target.y << ", " << target.z << ")" << std::endl;
@@ -53,7 +55,6 @@ void Camera::detach(CameraObserver* observer)
     if (it != observers.end()) 
     {
         observers.erase(it);
-        std::cout << "Observer detached from camera. Total observers: " << observers.size() << "\n";
     }
 }
 

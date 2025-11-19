@@ -28,7 +28,6 @@ Scene::~Scene()
     }
 
     clear();
-    std::cout << "Scene destroyed\n";
 }
 
 void Scene::addLight(Light* light)
@@ -42,7 +41,7 @@ void Scene::addLight(Light* light)
     lights.push_back(light);
     light->attach(this);
 
-    std::cout << "Light added to scene. Total lights: " << lights.size() << std::endl;
+    std::cout << "\nLight added to scene. Total lights: " << lights.size() << std::endl;
 }
 
 void Scene::addLightObject(LightObject* lightObj)
@@ -52,8 +51,6 @@ void Scene::addLightObject(LightObject* lightObj)
         return;
     }
 
-    std::cout << "Scene::addLightObject() - Adding LightObject..." << std::endl;
-
     objects.push_back(std::unique_ptr<DrawableObject>(lightObj));
 
     Light* light = lightObj->getLight();
@@ -61,12 +58,6 @@ void Scene::addLightObject(LightObject* lightObj)
         lights.push_back(light);
 
         light->attach(this);
-
-        std::cout << "Scene::addLightObject() - Light added at ("
-            << light->getPosition().x << ", "
-            << light->getPosition().y << ", "
-            << light->getPosition().z << ")"
-            << " Total lights: " << lights.size() << std::endl;
     }
     else {
         std::cerr << "WARNING: LightObject has no attached light!" << std::endl;
@@ -121,7 +112,6 @@ void Scene::removeObject(DrawableObject* obj)
 void Scene::clear()
 {
     objects.clear();
-    std::cout << "Scene cleared\n";
 }
 
 void Scene::update(float deltaTime)
@@ -327,7 +317,7 @@ ShaderProgram* Scene::createShader(const std::string& vertexPath, const std::str
 void Scene::setSpotLight(SpotLight* light)
 {
     spotlight = light;
-    std::cout << "? SpotLight added to scene" << std::endl;
+    std::cout << "SpotLight added to scene" << std::endl;
 }
 
 DrawableObject* Scene::findObjectByID(int id)
