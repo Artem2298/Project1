@@ -28,7 +28,7 @@ bool Texture::loadFromFile(const std::string& filepath)
         textureID = 0;
     }
 
-    std::cout << "Loading texture: " << filepath << std::endl;
+    std::cout << "\nLoading texture: " << filepath << std::endl;
 
     stbi_set_flip_vertically_on_load(true);
 
@@ -39,9 +39,6 @@ bool Texture::loadFromFile(const std::string& filepath)
         std::cerr << "Reason: " << stbi_failure_reason() << std::endl;
         return false;
     }
-
-    std::cout << "  Size: " << width << "x" << height << std::endl;
-    std::cout << "  Channels: " << channels << " (loaded as RGBA)" << std::endl;
 
     glGenTextures(1, &textureID);
     glBindTexture(GL_TEXTURE_2D, textureID);
@@ -71,7 +68,7 @@ bool Texture::loadFromFile(const std::string& filepath)
     stbi_image_free(data);
 
     isLoaded = true;
-    std::cout << "? Texture loaded successfully (ID: " << textureID << ")" << std::endl;
+    std::cout << "Texture loaded successfully (ID: " << textureID << ")" << std::endl;
 
     return true;
 }

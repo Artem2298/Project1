@@ -44,7 +44,7 @@ void Model::loadWithStride(const float* vertices, unsigned int count, GLuint ver
             );
         }
         else {
-            std::cout << "   ⚠️  Position attribute not found in shader" << std::endl;
+            std::cout << "Position attribute not found in shader" << std::endl;
         }
 
         if (normalLoc != -1 && stride >= 6) {
@@ -59,7 +59,7 @@ void Model::loadWithStride(const float* vertices, unsigned int count, GLuint ver
             );
         }
         else if (normalLoc != -1) {
-            std::cout << "   ⚠️  Normal attribute found but stride too small" << std::endl;
+            std::cout << "Normal attribute found but stride too small" << std::endl;
         }
 
         if (texCoordLoc != -1 && stride >= 8) {
@@ -72,15 +72,15 @@ void Model::loadWithStride(const float* vertices, unsigned int count, GLuint ver
                 stride * sizeof(float),
                 (void*)(6 * sizeof(float))
             );
-            std::cout << "   ✅ TexCoord attribute configured" << std::endl;
+            std::cout << "TexCoord attribute configured" << std::endl;
         }
         else if (texCoordLoc != -1) {
-            std::cout << "   ℹ️  TexCoord attribute found but stride too small (need 8, have " << stride << ")" << std::endl;
+            std::cout << "TexCoord attribute found but stride too small (need 8, have " << stride << ")" << std::endl;
         }
 
     }
     else {
-        std::cout << "⚠️  Model::loadWithStride() - No shader provided, using legacy hardcoded locations" << std::endl;
+        std::cout << "Model::loadWithStride() - No shader provided, using legacy hardcoded locations" << std::endl;
 
         glEnableVertexAttribArray(0);
         glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, stride * sizeof(float), (void*)0);
@@ -101,32 +101,6 @@ void Model::loadWithStride(const float* vertices, unsigned int count, GLuint ver
 
     isLoaded = true;
 }
-
-//void Model::load(const float* vertices, unsigned int vertexCount)
-//{
-//    loadWithStride(vertices, vertexCount, 3);
-//}
-//
-//void Model::load(const std::vector<glm::vec3>& vertices)
-//{
-//    if (vertices.empty())
-//    {
-//        std::cerr << "ERROR: Empty vertices vector\n";
-//        return;
-//    }
-//
-//    std::vector<float> vertexData;
-//    vertexData.reserve(vertices.size() * 3);
-//
-//    for (const auto& vertex : vertices)
-//    {
-//        vertexData.push_back(vertex.x);
-//        vertexData.push_back(vertex.y);
-//        vertexData.push_back(vertex.z);
-//    }
-//
-//    load(vertexData.data(), vertices.size());
-//}
 
 void Model::draw() const
 {

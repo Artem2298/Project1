@@ -7,26 +7,18 @@
 #include "Scene.h"
 #include "SceneManager.h"
 #include "LightObject.h"
+#include "WindowManager.h"
+#include "InputManager.h"
+#include "SceneFactory.h"
 
 class Application
 {
 private:
-    GLFWwindow* window;
-    int windowWidth;
-    int windowHeight;
-    const char* windowTitle;
-
     SceneManager sceneManager;
 
     bool isRunning;
     double lastFrameTime;
 
-    double lastMouseX;
-    double lastMouseY;
-    bool rightMousePressed;
-
-    bool initGLFW();
-    bool initGLEW();
     void setupScenes();
 
     void createScene1();
@@ -34,17 +26,12 @@ private:
     void createScene3();
     void createScene4();
 
-    void printSystemInfo();
-
-    static void error_callback(int error, const char* description);
-    static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
-    static void window_size_callback(GLFWwindow* window, int width, int height);
-    static void mouse_button_callback(GLFWwindow* window, int button, int action, int mods);
-    static void mouse_callback(GLFWwindow* window, double xpos, double ypos);
-    void processInput(float deltaTime);
     float randomFloat(float min, float max);
 
     static Application* s_instance;
+    std::unique_ptr<WindowManager> windowManager;
+    std::unique_ptr<InputManager> inputManager;
+    SceneFactory sceneFactory;
 
 public:
     Application(int width, int height, const char* title);
@@ -54,10 +41,10 @@ public:
     void run();
     void shutdown();
 
-    GLFWwindow* getWindow() const { return window; }
+    GLFWwindow* getWindow() const { return windowManager->getWindow(); }
     SceneManager& getSceneManager() { return sceneManager; }
-    bool isOpen() const { return !glfwWindowShouldClose(window); }
+    bool isOpen() const { return !windowManager->shouldClose(); }
 
-    int getWindowWidth() const { return windowWidth; }
-    int getWindowHeight() const { return windowHeight; }
+    int getWindowWidth() const { return windowManager->getWidth(); }
+    int getWindowHeight() const { return windowManager->getHeight(); }
 };

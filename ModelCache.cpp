@@ -66,11 +66,11 @@ std::shared_ptr<ModelData> ModelCache::loadModelFromText(const std::string& file
     auto it = cache.find(key);
     if (it != cache.end())
     {
-        std::cout << "Model cache HIT: " << key << "\n";
+        std::cout << "\nModel cache HIT: " << key << "\n";
         return it->second;
     }
 
-    std::cout << "Model cache MISS: " << key << " - loading from text...\n";
+    std::cout << "\nModel cache MISS: " << key << " - loading from text...\n";
 
     std::vector<float> vertices = loader.loadFromText(filePath);
 
@@ -95,11 +95,11 @@ std::shared_ptr<ModelData> ModelCache::loadModelFromOBJ(const std::string& fileP
     auto it = cache.find(key);
     if (it != cache.end())
     {
-        std::cout << "Model cache HIT: " << key << "\n";
+        std::cout << "\nModel cache HIT: " << key << "\n";
         return it->second;
     }
 
-    std::cout << "Model cache MISS: " << key << " - loading from OBJ...\n";
+    std::cout << "\nModel cache MISS: " << key << " - loading from OBJ...\n";
 
     std::vector<float> vertices = loader.loadFromOBJ(filePath);
 
