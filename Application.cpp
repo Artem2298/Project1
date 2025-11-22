@@ -50,7 +50,7 @@ void Application::setupScenes()
     Scene* scene4 = sceneFactory.createScene(4, aspectRatio);
     sceneManager.addScene(4, scene4);
 
-    sceneManager.switchScene(1);
+    sceneManager.switchScene(4);
 }
 
 bool Application::initialize()

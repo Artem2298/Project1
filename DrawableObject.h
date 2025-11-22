@@ -14,12 +14,11 @@ protected:
     ModelLoader modelLoader;
     ShaderProgram* shader;
     int objectID;
-
     glm::vec3 objectColor;
     float shininess;
-
     Texture* texture;
 
+    DrawableObject* parent;
 
 public:
     DrawableObject(bool isDynamic = false);
@@ -29,7 +28,6 @@ public:
     virtual void draw();
 
     bool loadModel(const std::string& filePath, const std::string& arrayName);
-
     bool loadModelFromText(const std::string& filePath);
     bool loadModelFromOBJ(const std::string& filePath);
 
@@ -51,11 +49,15 @@ public:
     Model& getModel() { return model; }
     const Model& getModel() const { return model; }
 
-    glm::mat4 getModelMatrix() const { return transform.getMatrix(); }
+    glm::mat4 getModelMatrix() const;
 
     void setTexture(Texture* tex) { texture = tex; }
     Texture* getTexture() const { return texture; }
 
     void setID(int id) { objectID = id; }
     int getID() const { return objectID; }
+
+    void setParent(DrawableObject* p) { parent = p; }
+    DrawableObject* getParent() const { return parent; }
+    bool hasParent() const { return parent != nullptr; }
 };

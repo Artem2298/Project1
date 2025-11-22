@@ -184,7 +184,7 @@ void InputManager::handleMouseButton(int button, int action, int mods, double xp
                 viewport
             );
 
-            scene->putTeren(worldPos);
+            scene->putTree(worldPos);
 
             printf("\n-------- teren PLANTED --------\n");
             printf("World position: (%.2f, %.2f, %.2f)\n",
