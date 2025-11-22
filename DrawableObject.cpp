@@ -7,7 +7,8 @@ DrawableObject::DrawableObject(bool isDynamic)
     objectColor(1.0f, 1.0f, 1.0f),
     shininess(32.0f),
     texture(nullptr),
-    objectID(0)
+    objectID(0),
+    parent(nullptr)
 {
 }
 
@@ -88,4 +89,16 @@ void DrawableObject::addDynamicTransform(ITransformComponent* component)
 void DrawableObject::setShader(ShaderProgram* shaderProgram)
 {
     shader = shaderProgram;
+}
+
+glm::mat4 DrawableObject::getModelMatrix() const
+{
+    glm::mat4 localMatrix = transform.getMatrix();
+
+    if (parent != nullptr) {
+        glm::mat4 parentMatrix = parent->getModelMatrix();
+        return parentMatrix * localMatrix;
+    }
+
+    return localMatrix;
 }

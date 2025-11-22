@@ -1,4 +1,4 @@
-#include <GL/glew.h>
+﻿#include <GL/glew.h>
 #include <GLFW/glfw3.h>  
 
 #include "SceneFactory.h"
@@ -95,7 +95,6 @@ Scene* SceneFactory::createScene1(float aspectRatio)
         fionaTexture = nullptr;
     }
 
-
     Camera* camera = new Camera(
         glm::vec3(0.0f, 8.0f, 20.0f),
         glm::vec3(0.0f, 8.0f, 0.0f),
@@ -142,14 +141,17 @@ Scene* SceneFactory::createScene1(float aspectRatio)
     SpotLightTracker* tracker = new SpotLightTracker(flashlight);
     camera->attach(tracker);
 
-
-    DrawableObject* ground = new DrawableObject(false);
-    ground->setShader(lambertShader);
-
-    if (ground->loadModelFromText("models/plain_with_uv.txt")) {
-        ground->setTexture(grassTexture);
-        ground->addStaticTransform(new ScaleTransform(glm::vec3(30.0f, 1.0f, 30.0f)));
-        scene->addObject(ground);
+    DrawableObject* teren = new DrawableObject();
+    teren->setShader(lambertShader);
+    if (teren->loadModelFromOBJ("models/teren.obj")) {
+        teren->setTexture(grassTexture);
+        teren->setObjectColor(glm::vec3(0.2f, 0.6f, 0.2f));
+        teren->setShininess(32.0f);
+        scene->addObject(teren);
+    }
+    else {
+        std::cerr << "Failed to load teren.obj model!" << std::endl;
+        delete teren;
     }
 
     DrawableObject* shrek = new DrawableObject(false);
@@ -600,7 +602,7 @@ Scene* SceneFactory::createScene3(float aspectRatio)
 Scene* SceneFactory::createScene4(float aspectRatio)
 {
     std::cout << "\nCreating Scene 4..." << std::endl;
- 
+
     Scene* scene = new Scene();
 
     ShaderProgram* constantShader = scene->createShader(
@@ -615,6 +617,17 @@ Scene* SceneFactory::createScene4(float aspectRatio)
         "shaders/blinn_vertex.glsl",
         "shaders/blinn_fragment.glsl"
     );
+    ShaderProgram* lambertShader = scene->createShader(
+        "shaders/lambert_vertex.glsl",
+        "shaders/lambert_fragment.glsl"
+    );
+
+    Texture* earthTexture = new Texture();
+    if (!earthTexture->loadFromFile("texture/earth.jpg")) {
+        std::cerr << "Failed to load earthTexture!" << std::endl;
+        delete earthTexture;
+        earthTexture = nullptr;
+    }
 
     Camera* camera = new Camera(
         glm::vec3(0.0f, 15.0f, 30.0f),
@@ -639,54 +652,61 @@ Scene* SceneFactory::createScene4(float aspectRatio)
 
     if (sun->loadModel("models/sphere.h", "sphere")) {
         sun->setObjectColor(glm::vec3(1.0f, 0.9f, 0.2f));
-        sun->addStaticTransform(new ScaleTransform(glm::vec3(3.0f, 3.0f, 3.0f)));
+        sun->addStaticTransform(new ScaleTransform(glm::vec3(3.0f)));
         scene->addObject(sun);
-        std::cout << "Sun loaded (from cache)!" << std::endl;
+        std::cout << "Sun loaded!" << std::endl;
     }
     else {
         delete sun;
     }
 
     DrawableObject* earth = new DrawableObject(true);
-    earth->setShader(phongShader);
+    earth->setShader(lambertShader);
 
     if (earth->loadModel("models/sphere.h", "sphere")) {
-        earth->setObjectColor(glm::vec3(0.2f, 0.4f, 0.8f));
+        earth->setObjectColor(glm::vec3(0.5f, 0.5f, 1.0f));
         earth->setShininess(32.0f);
 
-        earth->addStaticTransform(new ScaleTransform(glm::vec3(1.5f, 1.5f, 1.5f)));
+        earth->addStaticTransform(new ScaleTransform(glm::vec3(1.5f)));
 
-        earth->addDynamicTransform(new DynamicRotateTransform(glm::vec3(0.0f, 1.0f, 0.0f), 20.0f));
+        earth->addDynamicTransform(new DynamicRotateTransform(glm::vec3(0.0f, 1.0f, 0.0f), 50.0f));
+
         earth->addDynamicTransform(new TranslateTransform(glm::vec3(12.0f, 0.0f, 0.0f)));
-        earth->addDynamicTransform(new DynamicRotateTransform(glm::vec3(0.0f, 1.0f, 0.0f), 2.0f));
+
+        earth->addDynamicTransform(new DynamicRotateTransform(glm::vec3(0.0f, 1.0f, 0.0f), 5.0f));
 
         scene->addObject(earth);
-        std::cout << "Earth loaded (from cache)!" << std::endl;
+        std::cout << "Earth loaded!" << std::endl;
     }
     else {
         delete earth;
+        earth = nullptr;
     }
 
-    DrawableObject* moon = new DrawableObject(true);
-    moon->setShader(blinnShader);
+    if (earth != nullptr) {
+        DrawableObject* moon = new DrawableObject(true);
+        moon->setShader(blinnShader);
 
-    if (moon->loadModel("models/sphere.h", "sphere")) {
-        moon->setObjectColor(glm::vec3(0.7f, 0.7f, 0.7f));
-        moon->setShininess(16.0f);
+        if (moon->loadModel("models/sphere.h", "sphere")) {
+            moon->setObjectColor(glm::vec3(0.9f, 0.9f, 0.9f));
+            moon->setShininess(16.0f);
 
-        moon->addStaticTransform(new ScaleTransform(glm::vec3(0.5f, 0.5f, 0.5f)));
+            moon->setParent(earth);
 
-        moon->addDynamicTransform(new DynamicRotateTransform(glm::vec3(0.0f, 1.0f, 0.0f), 0.4f));
-        moon->addDynamicTransform(new TranslateTransform(glm::vec3(3.0f, 0.0f, 0.0f)));
-        moon->addDynamicTransform(new DynamicRotateTransform(glm::vec3(0.0f, 1.0f, 0.0f), 20.0f));
-        moon->addDynamicTransform(new TranslateTransform(glm::vec3(12.0f, 0.0f, 0.0f)));
-        moon->addDynamicTransform(new DynamicRotateTransform(glm::vec3(0.0f, 1.0f, 0.0f), 2.0f));
+            moon->addStaticTransform(new ScaleTransform(glm::vec3(0.5f)));
+            // around earth
+            moon->addDynamicTransform(new DynamicRotateTransform(glm::vec3(0.0f, 1.0f, 0.0f), 90.0f));
 
-        scene->addObject(moon);
-        std::cout << "Moon loaded (from cache)!" << std::endl;
-    }
-    else {
-        delete moon;
+            moon->addDynamicTransform(new TranslateTransform(glm::vec3(3.0f, 0.0f, 0.0f)));
+            // around herself
+            moon->addDynamicTransform(new DynamicRotateTransform(glm::vec3(0.0f, 1.0f, 0.0f), 30.0f));
+
+            scene->addObject(moon);
+            std::cout << "Moon loaded!" << std::endl;
+        }
+        else {
+            delete moon;
+        }
     }
 
     std::cout << "Scene 4 created!" << std::endl;
