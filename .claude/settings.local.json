@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(find:*)",
+      "Bash(done)",
+      "Bash(msbuild:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

@@ -32,6 +32,4 @@ public:
     std::shared_ptr<ModelData> loadModelFromText(const std::string& filePath);
     std::shared_ptr<ModelData> loadModelFromOBJ(const std::string& filePath);
     void clear();
-    void printStats() const;
-    static void destroy();
 };

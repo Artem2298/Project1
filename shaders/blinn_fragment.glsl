@@ -28,7 +28,7 @@ struct SpotLight {
 
 in vec4 worldPosition;
 in vec3 worldNormal;
-in vec2 uv;
+in vec2 TexCoord;
 
 uniform vec3 cameraPosition;
 uniform vec3 objectColor;
@@ -50,7 +50,7 @@ void main() {
     
     vec3 baseColor;
     if (useTexture == 1) {
-        vec4 texColor = texture(textureUnitID, uv);
+        vec4 texColor = texture(textureUnitID, TexCoord);
         baseColor = texColor.rgb;
     } else {
         baseColor = objectColor;
@@ -72,9 +72,13 @@ void main() {
         float diff = max(dot(normal, lightDir), 0.0);
         vec3 diffuse = attenuation * diff * lights[i].color * lights[i].intensity * baseColor;
         
-        vec3 halfwayDir = normalize(lightDir + viewDir);
-        float spec = pow(max(dot(normal, halfwayDir), 0.0), shininess);
-        vec3 specular = attenuation * spec * lights[i].color * lights[i].intensity;
+
+        vec3 specular = vec3(0.0);
+        if(diff > 0.0) {
+            vec3 halfwayDir = normalize(lightDir + viewDir);
+            float spec = pow(max(dot(normal, halfwayDir), 0.0), shininess);
+            specular = attenuation * spec * lights[i].color * lights[i].intensity;
+        }
         
         totalDiffuse += diffuse;
         totalSpecular += specular;

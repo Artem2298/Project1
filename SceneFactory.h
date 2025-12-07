@@ -14,6 +14,7 @@ private:
     Scene* createScene2(float aspectRatio);
     Scene* createScene3(float aspectRatio);
     Scene* createScene4(float aspectRatio);
+    Scene* createScene5(float aspectRatio);
 
 public:
     SceneFactory();

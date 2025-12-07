@@ -50,7 +50,10 @@ void Application::setupScenes()
     Scene* scene4 = sceneFactory.createScene(4, aspectRatio);
     sceneManager.addScene(4, scene4);
 
-    sceneManager.switchScene(4);
+    Scene* scene5 = sceneFactory.createScene(5, aspectRatio);
+    sceneManager.addScene(5, scene5);
+
+    sceneManager.switchScene(2);
 }
 
 bool Application::initialize()
@@ -84,8 +87,6 @@ void Application::run()
         if (currentScene) {
             currentScene->update(deltaTime);
         }
-
-        inputManager->processInput(deltaTime);
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 

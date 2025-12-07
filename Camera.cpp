@@ -9,7 +9,7 @@
 
 Camera::Camera(const glm::vec3& eye, const glm::vec3& targetPoint, const glm::vec3& up,
     float fov, float aspect, float near, float far)
-    : eye(eye),
+    : position(eye),
     up(up),
     fov(fov),
     aspect(aspect),
@@ -37,7 +37,7 @@ Camera::~Camera()
 
 void Camera::updateViewMatrix()
 {
-    viewMatrix = glm::lookAt(eye, eye + target, up);
+    viewMatrix = glm::lookAt(position, position + target, up);
 }
 
 void Camera::attach(CameraObserver* observer) 
@@ -67,14 +67,14 @@ void Camera::notify()
 
 void Camera::setPosition(const glm::vec3& newEye)
 {
-    eye = newEye;
+    position = newEye;
     updateViewMatrix();
     notify();
 }
 
 void Camera::setTarget(const glm::vec3& newTarget)
 {
-    target = glm::normalize(newTarget - eye);
+    target = glm::normalize(newTarget - position);
     updateViewMatrix();
     notify();
 }

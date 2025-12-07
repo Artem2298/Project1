@@ -7,7 +7,7 @@
 class Camera
 {
 private:
-    glm::vec3 eye;
+    glm::vec3 position;
     glm::vec3 target;
     glm::vec3 up;
 
@@ -28,14 +28,14 @@ private:
     void notify();
 
 public:
-    Camera(const glm::vec3& eye, const glm::vec3& target, const glm::vec3& up,
+    Camera(const glm::vec3& position, const glm::vec3& target, const glm::vec3& up,
         float fov, float aspect, float near, float far);
     ~Camera();
 
     void attach(CameraObserver* observer);
     void detach(CameraObserver* observer);
 
-    void setPosition(const glm::vec3& newEye);
+    void setPosition(const glm::vec3& newPosition);
     void setTarget(const glm::vec3& newTarget);
     void setUp(const glm::vec3& newUp);
     void updateDirection(float deltaYaw, float deltaPitch);
@@ -43,7 +43,8 @@ public:
 
     const glm::mat4& getCamera() const { return viewMatrix; }
     const glm::mat4& getProjectionMatrix() const { return projectionMatrix; }
-    const glm::vec3& getEye() const { return eye; }
+    const glm::mat4& getViewMatrix() const { return viewMatrix; }
+    const glm::vec3& getEye() const { return position; }
     const glm::vec3& getUp() const { return up; }
     const glm::vec3& getTarget() { return target; }
 

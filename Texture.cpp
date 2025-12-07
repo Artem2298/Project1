@@ -76,7 +76,7 @@ bool Texture::loadFromFile(const std::string& filepath)
 void Texture::bind(GLuint textureUnit) const
 {
     if (!isLoaded) {
-        std::cerr << "??  Warning: Trying to bind unloaded texture!" << std::endl;
+        std::cerr << "Warning: Trying to bind unloaded texture!" << std::endl;
         return;
     }
 

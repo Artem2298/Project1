@@ -28,7 +28,6 @@ public:
     ~WindowManager();
     
     bool initialize();
-    void pollEvents();
     void swapBuffers();
     bool shouldClose() const;
     void setShouldClose(bool value);

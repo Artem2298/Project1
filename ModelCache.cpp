@@ -130,28 +130,3 @@ void ModelCache::clear()
     cache.clear();
     std::cout << "Model cache cleared\n";
 }
-
-void ModelCache::printStats() const
-{
-    size_t totalVertices = 0;
-    size_t totalBytes = 0;
-
-    for (const auto& pair : cache)
-    {
-        totalVertices += pair.second->vertexCount;
-        totalBytes += pair.second->vertices.size() * sizeof(float);
-    }
-
-    std::cout << "Total vertices: " << totalVertices << "\n";
-    std::cout << "Total memory: " << totalBytes / 1024 << " KB\n";
-    std::cout << "========================\n";
-}
-
-void ModelCache::destroy()
-{
-    if (instance)
-    {
-        delete instance;
-        instance = nullptr;
-    }
-}

@@ -26,5 +26,4 @@ void SpotLightTracker::onCameraChanged(Camera* camera)
     spotlight->setDirection(dir);
 
     glm::vec3 spotDir = spotlight->getDirection();
-
 }
