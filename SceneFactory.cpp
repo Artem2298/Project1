@@ -14,6 +14,7 @@
 #include "Texture.h"
 #include "WindowManager.h"
 #include "DynamicRotateTransform.h"
+#include "CustomMatrixTransform.h"
 #include <iostream>
 #include <glm/gtc/matrix_transform.hpp>
 
@@ -40,6 +41,8 @@ Scene* SceneFactory::createScene(int sceneID, float aspectRatio)
         return createScene3(aspectRatio);
     case 4:
         return createScene4(aspectRatio);
+    case 5:
+        return createScene5(aspectRatio);
     default:
         std::cerr << "Invalid scene ID: " << sceneID << std::endl;
         return nullptr;
@@ -95,6 +98,13 @@ Scene* SceneFactory::createScene1(float aspectRatio)
         fionaTexture = nullptr;
     }
 
+    Texture* skyText = new Texture();
+    if (!skyText->loadFromFile("texture/sky.png")) {
+        std::cerr << "Failed to load skyText!" << std::endl;
+        delete skyText;
+        skyText = nullptr;
+    }
+
     Camera* camera = new Camera(
         glm::vec3(0.0f, 8.0f, 20.0f),
         glm::vec3(0.0f, 8.0f, 0.0f),
@@ -102,10 +112,9 @@ Scene* SceneFactory::createScene1(float aspectRatio)
         45.0f,
         aspectRatio,
         0.1f,
-        100.0f
+        500.0f
     );
     scene->setCamera(camera);
-
 
     Light* moonlight = new Light(
         glm::vec3(0.0f, 50.0f, 0.0f),
@@ -115,14 +124,13 @@ Scene* SceneFactory::createScene1(float aspectRatio)
     );
 
     Light* sunlight = new Light(
-        glm::vec3(10.0f, 50.0f, 10.0f),
+        glm::vec3(0.0f, 50.0f, 0.0f),
         glm::vec3(1.0f, 0.95f, 0.8f),
-        2.0f,
-        1.0f, 0.001f, 0.000001f
+        1.0f,
+        1.0f, 0.007f, 0.0002f
     );
 
     scene->addLight(sunlight);
-
 
     SpotLight* flashlight = new SpotLight(
         camera->getEye(),
@@ -152,6 +160,14 @@ Scene* SceneFactory::createScene1(float aspectRatio)
     else {
         std::cerr << "Failed to load teren.obj model!" << std::endl;
         delete teren;
+    }
+
+    DrawableObject* sky = new DrawableObject(false);
+    sky->setShader(lambertShader);
+    if (sky->loadModelFromOBJ("models/sky.obj")) {
+        sky->addStaticTransform(new ScaleTransform(glm::vec3(30.0f)));
+        sky->setTexture(skyText);
+        scene->addObject(sky);
     }
 
     DrawableObject* shrek = new DrawableObject(false);
@@ -219,7 +235,6 @@ Scene* SceneFactory::createScene1(float aspectRatio)
         scene->addObject(cubeBottom);
     }
 
-
     DrawableObject* car = new DrawableObject(false);
     car->setShader(phongShader);
     if (car->loadModelFromOBJ("models/formula1.obj")) {
@@ -245,41 +260,6 @@ Scene* SceneFactory::createScene1(float aspectRatio)
     float spacing = 8.0f;
     float territoryRadius = 3.0f;
     int fireflyCount = 0;
-
-    std::cout << "\nAdding LightObject... (fireflies)" << std::endl;
-    for (int x = 0; x < gridSize; x++) {
-        for (int z = 0; z < gridSize; z++) {
-            glm::vec3 center(
-                (x - gridSize / 2) * spacing + (rand() % 100 - 50) / 50.0f,
-                0.0f,
-                (z - gridSize / 2) * spacing + (rand() % 100 - 50) / 50.0f
-            );
-
-            LightObject* firefly = new LightObject(
-                center,
-                territoryRadius,
-                0.3f,
-                2.5f,
-                glm::vec3(1.0f, 1.0f, 0.3f),
-                2.5f,
-                1.0f, 0.22f, 0.20f
-            );
-
-            firefly->setShader(constantShader);
-
-            if (firefly->loadModel("models/sphere.h", "sphere")) {
-                firefly->setObjectColor(glm::vec3(1.0f, 1.0f, 0.3f));
-                firefly->addStaticTransform(new ScaleTransform(glm::vec3(0.05f, 0.05f, 0.05f)));
-                firefly->setSpeed(1.5f + (rand() % 100) / 100.0f);
-
-                scene->addLightObject(firefly);
-                fireflyCount++;
-            }
-            else {
-                delete firefly;
-            }
-        }
-    }
 
     std::cout << "Scene 1 created!" << std::endl;
 
@@ -310,7 +290,7 @@ Scene* SceneFactory::createScene2(float aspectRatio)
     );
 
     Camera* camera = new Camera(
-        glm::vec3(0.0f, 3.0f, 15.0f),
+        glm::vec3(0.0f, -8.0f, 15.0f),
         glm::vec3(0.0f, 0.0f, 0.0f),
         glm::vec3(0.0f, 1.0f, 0.0f),
         45.0f,
@@ -342,8 +322,8 @@ Scene* SceneFactory::createScene2(float aspectRatio)
     );
 
     scene->addLight(light1);
-    scene->addLight(light2);
-    scene->addLight(light3);
+    //scene->addLight(light2);
+    //scene->addLight(light3);
 
 
     DrawableObject* sphere1 = new DrawableObject(false);
@@ -391,7 +371,7 @@ Scene* SceneFactory::createScene2(float aspectRatio)
 
     if (sphere4->loadModel("models/sphere.h", "sphere")) {
         sphere4->setObjectColor(glm::vec3(0.2f, 0.2f, 0.8f));
-        sphere4->setShininess(100.0f);
+        sphere4->setShininess(1.0f);
         sphere4->addStaticTransform(new TranslateTransform(glm::vec3(0.0f, -3.0f, 0.0f)));
         sphere4->addStaticTransform(new ScaleTransform(glm::vec3(1.5f, 1.5f, 1.5f)));
         scene->addObject(sphere4);
@@ -622,11 +602,54 @@ Scene* SceneFactory::createScene4(float aspectRatio)
         "shaders/lambert_fragment.glsl"
     );
 
+    Texture* sunTexture = new Texture();
+    if (!sunTexture->loadFromFile("texture/sun.jpg")) {
+        std::cerr << "Failed to load sunTexture!" << std::endl;
+        delete sunTexture;
+        sunTexture = nullptr;
+    }
+    
     Texture* earthTexture = new Texture();
     if (!earthTexture->loadFromFile("texture/earth.jpg")) {
         std::cerr << "Failed to load earthTexture!" << std::endl;
         delete earthTexture;
         earthTexture = nullptr;
+    }
+    
+    Texture* moonTexture = new Texture();
+    if (!moonTexture->loadFromFile("texture/moon.jpg")) {
+        std::cerr << "Failed to load moonTexture!" << std::endl;
+        delete moonTexture;
+        moonTexture = nullptr;
+    }
+
+    Texture* mercuryTexture = new Texture();
+    if (!mercuryTexture->loadFromFile("texture/mercury.jpg")) {
+        std::cerr << "Failed to load mercuryTexture!" << std::endl;
+        delete mercuryTexture;
+        mercuryTexture = nullptr;
+    }
+
+    Texture* venusTexture = new Texture();
+    if (!venusTexture->loadFromFile("texture/venus.jpg")) {
+        std::cerr << "Failed to load venusTexture!" << std::endl;
+        delete venusTexture;
+        venusTexture = nullptr;
+    }
+
+    Texture* marsTexture = new Texture();
+    if (!marsTexture->loadFromFile("texture/mars.jpg")) {
+        std::cerr << "Failed to load marsTexture!" << std::endl;
+        delete marsTexture;
+        marsTexture = nullptr;
+    }
+
+
+    Texture* skyText = new Texture();
+    if (!skyText->loadFromFile("texture/space.jpg")) {
+        std::cerr << "Failed to load skyText!" << std::endl;
+        delete skyText;
+        skyText = nullptr;
     }
 
     Camera* camera = new Camera(
@@ -643,16 +666,37 @@ Scene* SceneFactory::createScene4(float aspectRatio)
     Light* sunLight = new Light(
         glm::vec3(0.0f, 0.0f, 0.0f),
         glm::vec3(1.0f, 0.9f, 0.6f),
-        3.0f
+        3.0f,
+        1.0f,
+        0.007f,
+        0.0002f
     );
     scene->addLight(sunLight);
 
+    DrawableObject* sky = new DrawableObject(false);
+    sky->setShader(lambertShader);
+    if (sky->loadModelFromOBJ("models/sky.obj")) {
+        sky->addStaticTransform(new ScaleTransform(glm::vec3(30.0f)));
+        sky->setTexture(skyText);
+        scene->addObject(sky);
+    }
+
+    DrawableObject* sky1 = new DrawableObject(false);
+    sky1->setShader(lambertShader);
+    if (sky1->loadModelFromOBJ("models/sky.obj")) {
+        sky1->addStaticTransform(new RotateTransform(glm::vec3(0.0f, 0.0f, 1.0f), 180.0f));
+        sky1->addStaticTransform(new ScaleTransform(glm::vec3(30.0f)));
+        sky1->setTexture(skyText);
+        scene->addObject(sky1);
+    }
+
     DrawableObject* sun = new DrawableObject(false);
     sun->setShader(constantShader);
-
-    if (sun->loadModel("models/sphere.h", "sphere")) {
-        sun->setObjectColor(glm::vec3(1.0f, 0.9f, 0.2f));
-        sun->addStaticTransform(new ScaleTransform(glm::vec3(3.0f)));
+    if (sun->loadModelFromOBJ("models/sphera.obj")) {
+        sun->addStaticTransform(new ScaleTransform(glm::vec3(5.0f)));
+        sun->addStaticTransform(new DynamicRotateTransform(glm::vec3(0.0f, 1.0f, 0.0f), 10.0f));
+        sun->setTexture(sunTexture);
+        //sun->addStaticTransform(new CustomMatrixTransform(20));
         scene->addObject(sun);
         std::cout << "Sun loaded!" << std::endl;
     }
@@ -660,21 +704,50 @@ Scene* SceneFactory::createScene4(float aspectRatio)
         delete sun;
     }
 
+    DrawableObject* mercury = new DrawableObject(false);
+    mercury->setShader(phongShader);
+    if (mercury->loadModelFromOBJ("models/sphera.obj")) {
+        mercury->addStaticTransform(new ScaleTransform(glm::vec3(1.25f)));
+        mercury->addDynamicTransform(new DynamicRotateTransform(glm::vec3(0.0f, 1.0f, 0.0f), 60.0f));
+        mercury->addDynamicTransform(new TranslateTransform(glm::vec3(8.0f, 0.0f, 0.0f)));
+        mercury->addDynamicTransform(new DynamicRotateTransform(glm::vec3(0.0f, 1.0f, 0.0f), 10.0f));
+
+        mercury->setTexture(mercuryTexture);
+
+        scene->addObject(mercury);
+        std::cout << "Mercury loaded!" << std::endl;
+    }
+    else {
+        delete mercury;
+    }
+
+    DrawableObject* venus = new DrawableObject(false);
+    venus->setShader(phongShader);
+    if (venus->loadModelFromOBJ("models/sphera.obj")) {
+        venus->addStaticTransform(new ScaleTransform(glm::vec3(2.5f)));
+        venus->addDynamicTransform(new DynamicRotateTransform(glm::vec3(0.0f, 1.0f, 0.0f), 45.0f));
+        venus->addDynamicTransform(new TranslateTransform(glm::vec3(12.0f, 0.0f, 0.0f)));
+        venus->addDynamicTransform(new DynamicRotateTransform(glm::vec3(0.0f, 1.0f, 0.0f), 4.0f));
+
+        venus->setTexture(venusTexture);
+
+        scene->addObject(venus);
+        std::cout << "Venus loaded!" << std::endl;
+    }
+    else {
+        delete venus;
+    }
+
     DrawableObject* earth = new DrawableObject(true);
-    earth->setShader(lambertShader);
+    earth->setShader(blinnShader);
+    if (earth->loadModelFromOBJ("models/sphera.obj")) {
+        earth->addStaticTransform(new ScaleTransform(glm::vec3(2.75f)));
+        earth->addDynamicTransform(new DynamicRotateTransform(glm::vec3(0.0f, 1.0f, 0.0f), 30.0f));
+        earth->addDynamicTransform(new TranslateTransform(glm::vec3(18.0f, 0.0f, 0.0f)));
+        earth->addDynamicTransform(new DynamicRotateTransform(glm::vec3(0.0f, 1.0f, 0.0f), 20.0f));
 
-    if (earth->loadModel("models/sphere.h", "sphere")) {
-        earth->setObjectColor(glm::vec3(0.5f, 0.5f, 1.0f));
-        earth->setShininess(32.0f);
-
-        earth->addStaticTransform(new ScaleTransform(glm::vec3(1.5f)));
-
-        earth->addDynamicTransform(new DynamicRotateTransform(glm::vec3(0.0f, 1.0f, 0.0f), 50.0f));
-
-        earth->addDynamicTransform(new TranslateTransform(glm::vec3(12.0f, 0.0f, 0.0f)));
-
-        earth->addDynamicTransform(new DynamicRotateTransform(glm::vec3(0.0f, 1.0f, 0.0f), 5.0f));
-
+        earth->setTexture(earthTexture);
+    
         scene->addObject(earth);
         std::cout << "Earth loaded!" << std::endl;
     }
@@ -686,20 +759,17 @@ Scene* SceneFactory::createScene4(float aspectRatio)
     if (earth != nullptr) {
         DrawableObject* moon = new DrawableObject(true);
         moon->setShader(blinnShader);
+        if (moon->loadModelFromOBJ("models/sphera.obj")) {
 
-        if (moon->loadModel("models/sphere.h", "sphere")) {
-            moon->setObjectColor(glm::vec3(0.9f, 0.9f, 0.9f));
             moon->setShininess(16.0f);
-
             moon->setParent(earth);
 
-            moon->addStaticTransform(new ScaleTransform(glm::vec3(0.5f)));
-            // around earth
-            moon->addDynamicTransform(new DynamicRotateTransform(glm::vec3(0.0f, 1.0f, 0.0f), 90.0f));
+            moon->addStaticTransform(new ScaleTransform(glm::vec3(0.4f)));
+            moon->addDynamicTransform(new DynamicRotateTransform(glm::vec3(0.0f, 1.0f, 0.0f), 45.0f));
+            moon->addDynamicTransform(new TranslateTransform(glm::vec3(1.0f, 0.0f, 0.0f)));
+            moon->addDynamicTransform(new DynamicRotateTransform(glm::vec3(0.0f, 1.0f, 0.0f), 45.0f));
 
-            moon->addDynamicTransform(new TranslateTransform(glm::vec3(3.0f, 0.0f, 0.0f)));
-            // around herself
-            moon->addDynamicTransform(new DynamicRotateTransform(glm::vec3(0.0f, 1.0f, 0.0f), 30.0f));
+            moon->setTexture(moonTexture);
 
             scene->addObject(moon);
             std::cout << "Moon loaded!" << std::endl;
@@ -709,7 +779,155 @@ Scene* SceneFactory::createScene4(float aspectRatio)
         }
     }
 
+    DrawableObject* mars = new DrawableObject(true);
+    mars->setShader(blinnShader);
+    if (mars->loadModelFromOBJ("models/sphera.obj")) {
+        mars->addStaticTransform(new ScaleTransform(glm::vec3(1.75f)));
+        mars->addDynamicTransform(new DynamicRotateTransform(glm::vec3(0.0f, 1.0f, 0.0f), 24.0f));
+        mars->addDynamicTransform(new TranslateTransform(glm::vec3(26.0f, 0.0f, 0.0f)));
+        mars->addDynamicTransform(new DynamicRotateTransform(glm::vec3(0.0f, 1.0f, 0.0f), 20.0f));
+
+        mars->setTexture(marsTexture);
+
+        scene->addObject(mars);
+        std::cout << "Mars loaded!" << std::endl;
+    }
+    else {
+        delete mars;
+        mars = nullptr;
+    }
+
+    if (mars != nullptr) {
+        DrawableObject* phobos = new DrawableObject(true);
+        phobos->setShader(blinnShader);
+        if (phobos->loadModelFromOBJ("models/sphera.obj")) {
+            phobos->setShininess(16.0f);
+            phobos->setParent(mars);
+
+            phobos->addStaticTransform(new ScaleTransform(glm::vec3(0.3f)));
+            phobos->addDynamicTransform(new DynamicRotateTransform(glm::vec3(0.0f, 1.0f, 0.0f), 100.0f));
+            phobos->addDynamicTransform(new TranslateTransform(glm::vec3(1.3f, 0.0f, 0.0f)));
+            phobos->addDynamicTransform(new DynamicRotateTransform(glm::vec3(0.0f, 1.0f, 0.0f), 100.0f));
+
+            scene->addObject(phobos);
+            std::cout << "Phobos loaded!" << std::endl;
+        }
+
+        DrawableObject* deimos = new DrawableObject(true);
+        deimos->setShader(blinnShader);
+        if (deimos->loadModelFromOBJ("models/sphera.obj")) {
+            deimos->setShininess(16.0f);
+            deimos->setParent(mars);
+
+            deimos->addStaticTransform(new ScaleTransform(glm::vec3(0.15f)));
+            deimos->addDynamicTransform(new DynamicRotateTransform(glm::vec3(0.0f, 1.0f, 0.0f), 75.0f));
+            deimos->addDynamicTransform(new TranslateTransform(glm::vec3(2.1f, 0.0f, 0.0f)));
+            deimos->addDynamicTransform(new DynamicRotateTransform(glm::vec3(0.0f, 1.0f, 0.0f), 75.0f));
+
+            scene->addObject(deimos);
+            std::cout << "Deimos loaded!" << std::endl;
+        }
+    }
+
+    DrawableObject* name = new DrawableObject(true);
+    name->setShader(blinnShader);
+    if (name->loadModelFromOBJ("models/kuz.obj")) {
+        name->setShininess(16.0f);
+
+        name->addDynamicTransform(new DynamicRotateTransform(glm::vec3(1.0f, 0.0f, 0.0f), 75.0f));
+        name->addStaticTransform(new TranslateTransform(glm::vec3(5.0f, 0.0f, 0.0f)));
+
+        scene->addObject(name);
+        std::cout << "Name loaded!" << std::endl;
+
+    }
     std::cout << "Scene 4 created!" << std::endl;
+
+    return scene;
+}
+
+Scene* SceneFactory::createScene5(float aspectRatio) 
+{
+    std::cout << "\nCreating Scene 5..." << std::endl;
+
+    Scene* scene = new Scene();
+
+    ShaderProgram* constantShader = scene->createShader(
+        "shaders/constant_vertex.glsl",
+        "shaders/constant_fragment.glsl"
+    );
+    ShaderProgram* phongShader = scene->createShader(
+        "shaders/phong_vertex.glsl",
+        "shaders/phong_fragment.glsl"
+    );
+    ShaderProgram* blinnShader = scene->createShader(
+        "shaders/blinn_vertex.glsl",
+        "shaders/blinn_fragment.glsl"
+    );
+    ShaderProgram* lambertShader = scene->createShader(
+        "shaders/lambert_vertex.glsl",
+        "shaders/lambert_fragment.glsl"
+    );
+
+    Texture* roadText = new Texture();
+    if (!roadText->loadFromFile("texture/road.jpg")) {
+        std::cerr << "Failed to load roadText!" << std::endl;
+        delete roadText;
+        roadText = nullptr;
+    }
+
+    Texture* wolfText = new Texture();
+    if (!wolfText->loadFromFile("texture/wolf.jpg")) {
+        std::cerr << "Failed to load wolfText!" << std::endl;
+        delete wolfText;
+        wolfText = nullptr;
+    }
+
+    Camera* camera = new Camera(
+        glm::vec3(30.0f, 15.0f, 0.0f),
+        glm::vec3(0.0f, 0.0f, 0.0f),
+        glm::vec3(0.0f, 1.0f, 0.0f),
+        45.0f,
+        aspectRatio,
+        0.1f,
+        500.0f
+    );
+    scene->setCamera(camera);
+
+    Light* sunLight = new Light(
+        glm::vec3(0.0f, 30.0f, 0.0f),
+        glm::vec3(1.0f, 0.9f, 0.6f),
+        3.0f,
+        1.0f,
+        0.007f,
+        0.0002f
+    );
+    scene->addLight(sunLight);
+
+    for (int i = 0; i < 6; i++) {
+        float parametr = -(float)i * 13.0f;
+        DrawableObject* road = new DrawableObject(true);
+        road->setShader(lambertShader);
+        if (road->loadModelFromOBJ("models/road.obj")) {
+            road->addStaticTransform(new ScaleTransform(glm::vec3(5.0f)));
+            road->addStaticTransform(new TranslateTransform(glm::vec3(parametr, -2.75f, 0.0f)));
+            road->addDynamicTransform(new DynamicTranslateTransform(glm::vec3(0.0f), glm::vec3(5.0f, 0.0f, 0.0f)));
+            road->setTexture(roadText);
+            scene->addObject(road);
+        }
+        else {
+            delete road;
+        }
+    }
+
+    DrawableObject* car = new DrawableObject(false);
+    car->setShader(lambertShader);
+    if (car->loadModelFromOBJ("models/formula1.obj")) {
+        car->setObjectColor(glm::vec3(0.8f, 0.2f, 0.4f));
+        car->addStaticTransform(new ScaleTransform(glm::vec3(0.25f, 0.25f, 0.25f)));
+        //car->addDynamicTransform(new DynamicTranslateTransform(glm::vec3(0.0f, 0.0f, 2.0f), 5.0f));
+        scene->addObject(car);
+    }
 
     return scene;
 }

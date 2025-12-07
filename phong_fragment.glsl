@@ -28,7 +28,7 @@ struct SpotLight {
 
 in vec4 worldPosition;
 in vec3 worldNormal;
-in vec2 uv;
+in vec2 TexCoord;
 
 uniform vec3 cameraPosition;
 uniform vec3 objectColor;
@@ -50,18 +50,20 @@ void main() {
     
     vec3 baseColor;
     if (useTexture == 1) {
-        vec4 texColor = texture(textureUnitID, uv);
+        vec4 texColor = texture(textureUnitID, TexCoord);
         baseColor = texColor.rgb;
     } else {
         baseColor = objectColor;
     }
     
+    // Ambient
     vec3 ambient = 0.1 * baseColor;
     
     vec3 totalDiffuse = vec3(0.0);
     vec3 totalSpecular = vec3(0.0);
     
     for(int i = 0; i < numLights; i++) {
+        // Vector from fragm to source
         vec3 lightDir = normalize(lights[i].position - worldPosition.xyz);
         float distance = length(lights[i].position - worldPosition.xyz);
         
@@ -69,9 +71,11 @@ void main() {
                                    lights[i].linear * distance + 
                                    lights[i].quadratic * distance * distance);
         
+        // Diffuse 
         float diff = max(dot(normal, lightDir), 0.0);
         vec3 diffuse = attenuation * diff * lights[i].color * lights[i].intensity * baseColor;
         
+        // Specular
         vec3 reflectDir = reflect(-lightDir, normal);
         float spec = pow(max(dot(viewDir, reflectDir), 0.0), shininess);
         vec3 specular = attenuation * spec * lights[i].color * lights[i].intensity;

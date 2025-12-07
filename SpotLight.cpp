@@ -71,8 +71,10 @@ void SpotLight::applyToShader(ShaderProgram& shader, const std::string& uniformN
     shader.setUniform(uniformName + ".direction", direction);
     shader.setUniform(uniformName + ".color", color);
     shader.setUniform(uniformName + ".intensity", intensity);
+    //  so I don't have to count degrees in the shader
     shader.setUniform(uniformName + ".cutOff", glm::cos(glm::radians(cutOff)));
     shader.setUniform(uniformName + ".outerCutOff", glm::cos(glm::radians(outerCutOff)));
+
     shader.setUniform(uniformName + ".constant", constant);
     shader.setUniform(uniformName + ".linear", linear);
     shader.setUniform(uniformName + ".quadratic", quadratic);

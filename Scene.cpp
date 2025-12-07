@@ -64,20 +64,6 @@ void Scene::addLightObject(LightObject* lightObj)
     }
 }
 
-void Scene::removeLight(Light* light)
-{
-    if (light == nullptr)
-        return;
-
-    auto it = std::find(lights.begin(), lights.end(), light);
-    if (it != lights.end())
-    {
-        (*it)->detach(this);
-        lights.erase(it);
-        std::cout << "Light removed from scene. Total lights: " << lights.size() << "\n";
-    }
-}
-
 void Scene::addObject(DrawableObject* obj)
 {
     if (obj == nullptr)
@@ -93,22 +79,6 @@ void Scene::addObject(DrawableObject* obj)
     objects.push_back(std::unique_ptr<DrawableObject>(obj));
 }
 
-void Scene::removeObject(DrawableObject* obj)
-{
-    if (obj == nullptr)
-        return;
-
-    auto it = std::find_if(objects.begin(), objects.end(),
-        [obj](const std::unique_ptr<DrawableObject>& ptr) {
-            return ptr.get() == obj;
-        });
-
-    if (it != objects.end())
-    {
-        objects.erase(it);
-    }
-}
-
 void Scene::clear()
 {
     objects.clear();
@@ -116,6 +86,12 @@ void Scene::clear()
 
 void Scene::update(float deltaTime)
 {
+    if (camera)
+    {
+        projectionMatrix = camera->getProjectionMatrix();
+        viewMatrix = camera->getViewMatrix();
+    }
+
     for (auto& obj : objects)
     {
         if (obj)
@@ -125,103 +101,7 @@ void Scene::update(float deltaTime)
 
 void Scene::render()
 {
-
-    glEnable(GL_STENCIL_TEST);
-    glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
-
-    for (auto& obj : objects) {
-        if (obj->getShader() == nullptr) {
-            std::cerr << "Scene::render() - Object has no shader!" << std::endl;
-            continue;
-        }
-
-        ShaderProgram* shader = obj->getShader();
-        shader->use();
-
-        glStencilFunc(GL_ALWAYS, obj->getID(), 0xFF);
-
-        glm::mat4 modelMatrix = obj->getModelMatrix();
-        glm::mat3 normalMatrix = glm::transpose(glm::inverse(glm::mat3(modelMatrix)));
-
-        shader->setUniform("modelMatrix", modelMatrix);
-        shader->setUniform("normalMatrix", normalMatrix);
-        shader->setUniform("viewMatrix", viewMatrix);
-        shader->setUniform("projectionMatrix", projectionMatrix);
-
-        if (camera) {
-            GLint loc = shader->getUniformLocation("cameraPosition");
-            if (loc != -1) {
-                shader->setUniform("cameraPosition", camera->getEye());
-            }
-        }
-
-        int numLights = static_cast<int>(lights.size());
-        if (numLights > 20) {
-            numLights = 20;
-        }
-
-        GLint numLightsLoc = shader->getUniformLocation("numLights");
-        if (numLightsLoc != -1) {
-            shader->setUniform("numLights", numLights);
-        }
-
-        for (int i = 0; i < numLights; i++) {
-            if (lights[i] != nullptr) {
-                lights[i]->applyToShader(*shader, i);
-            }
-        }
-
-        if (spotlight) {
-            spotlight->applyToShader(*shader, "spotlight");
-        }
-        else {
-            GLint spotlightEnabledLoc = shader->getUniformLocation("spotlight.enabled");
-            if (spotlightEnabledLoc != -1) {
-                shader->setUniform("spotlight.enabled", 0);
-            }
-        }
-
-        GLint objectColorLoc = shader->getUniformLocation("objectColor");
-        if (objectColorLoc != -1) {
-            shader->setUniform("objectColor", obj->getObjectColor());
-        }
-
-        GLint shininessLoc = shader->getUniformLocation("shininess");
-        if (shininessLoc != -1) {
-            shader->setUniform("shininess", obj->getShininess());
-        }
-
-        Texture* texture = obj->getTexture();
-        if (texture != nullptr && texture->isTextureLoaded()) {
-            texture->bind(0);
-
-            GLint textureLoc = shader->getUniformLocation("textureUnitID");
-            if (textureLoc != -1) {
-                shader->setUniform("textureUnitID", 0);
-            }
-
-            GLint useTextureLoc = shader->getUniformLocation("useTexture");
-            if (useTextureLoc != -1) {
-                shader->setUniform("useTexture", 1);
-            }
-        }
-        else {
-            GLint useTextureLoc = shader->getUniformLocation("useTexture");
-            if (useTextureLoc != -1) {
-                shader->setUniform("useTexture", 0);
-            }
-        }
-
-        obj->draw();
-
-        if (texture != nullptr && texture->isTextureLoaded()) {
-            texture->unbind();
-        }
-
-        shader->unuse();
-    }
-
-    glDisable(GL_STENCIL_TEST);
+    renderer.render(objects, viewMatrix, projectionMatrix, camera.get(), lights, spotlight);
 }
 
 void Scene::setCamera(Camera* newCamera)
@@ -357,46 +237,4 @@ void Scene::putTree(const glm::vec3& position)
     tree->addStaticTransform(new TranslateTransform(position));
 
     addObject(tree);
-}
-
-void Scene::putTeren(const glm::vec3& position)
-{
-    DrawableObject* teren = new DrawableObject();
-
-    if (!shaders.empty()) {
-        teren->setShader(shaders[0].get());
-    }
-    else {
-        std::cerr << "No shaders available in scene!" << std::endl;
-        delete teren;
-        return;
-    }
-
-    if (!teren->loadModelFromOBJ("models/teren.obj")) {
-        std::cerr << "Failed to load teren.obj model!" << std::endl;
-        delete teren;
-        return;
-    }
-
-    Texture* grassTexture = new Texture();
-    if (grassTexture->loadFromFile("texture/grass.png")) {
-        teren->setTexture(grassTexture);
-        std::cout << "Grass texture loaded for terrain" << std::endl;
-    }
-    else {
-        std::cerr << "Failed to load grass.png texture, using default color" << std::endl;
-        teren->setObjectColor(glm::vec3(0.2f, 0.6f, 0.2f));
-        delete grassTexture;
-    }
-
-    teren->setShininess(32.0f);
-
-    teren->addStaticTransform(new TranslateTransform(position));
-
-    addObject(teren);
-
-    std::cout << "?? Terrain placed at position: ("
-        << position.x << ", "
-        << position.y << ", "
-        << position.z << ")" << std::endl;
 }

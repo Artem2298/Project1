@@ -108,6 +108,11 @@ void InputManager::handleKeyPress(int key, int action, int mods)
         app->getSceneManager().switchScene(4);
         std::cout << "Switched to Scene 4" << std::endl;
     }
+    else if (key == GLFW_KEY_5)
+    {
+        app->getSceneManager().switchScene(5);
+        std::cout << "Switched to Scene 5" << std::endl;
+    }
     else if (key == GLFW_KEY_F)
     {
         Scene* currentScene = app->getSceneManager().getCurrentScene();
@@ -158,7 +163,7 @@ void InputManager::handleMouseButton(int button, int action, int mods, double xp
         printf("\n-----------------------------\n");
         printf("|Screen position: (%d, %d)\n", x, y);
         printf("|OpenGL position: (%d, %d)\n", x, newY);
-        printf("|Depth: %f\n", depth);
+        //printf("|Depth: %f\n", depth);
         printf("|Object ID: %u\n", index);
         printf("-----------------------------\n\n");
 
@@ -186,7 +191,7 @@ void InputManager::handleMouseButton(int button, int action, int mods, double xp
 
             scene->putTree(worldPos);
 
-            printf("\n-------- teren PLANTED --------\n");
+            printf("\n-------- TREE PLANTED --------\n");
             printf("World position: (%.2f, %.2f, %.2f)\n",
                 worldPos.x, worldPos.y, worldPos.z);
         }

@@ -28,7 +28,7 @@ struct SpotLight {
 
 in vec4 worldPosition;
 in vec3 worldNormal;
-in vec2 uv;
+in vec2 TexCoord;
 
 uniform vec3 cameraPosition;
 uniform vec3 objectColor;
@@ -50,7 +50,7 @@ void main() {
     
     vec3 baseColor;
     if (useTexture == 1) {
-        vec4 texColor = texture(textureUnitID, uv);
+        vec4 texColor = texture(textureUnitID, TexCoord);
         baseColor = texColor.rgb;
     } else {
         baseColor = objectColor;

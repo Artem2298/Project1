@@ -21,13 +21,6 @@ private:
 
     void setupScenes();
 
-    void createScene1();
-    void createScene2();
-    void createScene3();
-    void createScene4();
-
-    float randomFloat(float min, float max);
-
     static Application* s_instance;
     std::unique_ptr<WindowManager> windowManager;
     std::unique_ptr<InputManager> inputManager;

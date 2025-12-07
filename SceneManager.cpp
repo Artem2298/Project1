@@ -53,3 +53,24 @@ Scene* SceneManager::getCurrentScene() const
     }
     return nullptr;
 }
+
+void SceneManager::updateAllCamerasAspect(float aspect)
+{
+        for (auto& pair : scenes)
+        {
+            Scene* scene = pair.second.get();
+            if (scene)
+            {
+                Camera* camera = scene->getCamera();
+                if (camera)
+                {
+                    camera->setPerspective(
+                        camera->getFov(),
+                        aspect,
+                        camera->getNear(),
+                        camera->getFar()
+                    );
+                }
+            }
+        }
+}

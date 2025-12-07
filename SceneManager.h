@@ -18,4 +18,6 @@ public:
     void switchScene(int sceneID);
     Scene* getCurrentScene() const;
     int getCurrentSceneID() const { return currentSceneID; }
+
+    void updateAllCamerasAspect(float aspect);
 };

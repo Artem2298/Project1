@@ -97,11 +97,6 @@ void WindowManager::printSystemInfo()
     std::cout << "------------------------------------------------------------------------" << "\n";
 }
 
-void WindowManager::pollEvents()
-{
-    glfwPollEvents();
-}
-
 void WindowManager::swapBuffers()
 {
     glfwSwapBuffers(window);
@@ -136,14 +131,7 @@ void WindowManager::windowSizeCallback(GLFWwindow* window, int width, int height
     glViewport(0, 0, width, height);
     wm->updateSize(width, height);
 
-    Scene* currentScene = wm->app->getSceneManager().getCurrentScene();
-    if (currentScene)
-    {
-        Camera* camera = currentScene->getCamera();
-        if (camera)
-        {
-            float aspect = static_cast<float>(width) / static_cast<float>(height);
-            camera->setPerspective(45.0f, aspect, 0.1f, 100.0f);
-        }
-    }
+    float aspect = static_cast<float>(width) / static_cast<float>(height);
+
+    wm->app->getSceneManager().updateAllCamerasAspect(aspect);
 }

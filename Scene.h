@@ -11,6 +11,7 @@
 #include "LightObserver.h"
 #include "TranslateTransform.h"
 #include "SpotLight.h"
+#include "SceneRenderer.h"
 
 class LightObject;
 
@@ -28,14 +29,13 @@ private:
     glm::mat4 projectionMatrix;
 
     int nextObjectID;
-
+    SceneRenderer renderer;
 public:
     Scene();
     ~Scene();
 
     void addObject(DrawableObject* obj);
     void addLightObject(LightObject* lightObj);
-    void removeObject(DrawableObject* obj);
 
     void clear();
     void update(float deltaTime);
@@ -45,7 +45,6 @@ public:
     void updateCameraMatrices();
 
     void addLight(Light* light);
-    void removeLight(Light* light);
     const std::vector<Light*>& getLights() const { return lights; }
     size_t getLightCount() const { return lights.size(); }
 
@@ -60,7 +59,6 @@ public:
     DrawableObject* findObjectByID(int id);
 
     void putTree(const glm::vec3& position);
-    void putTeren(const glm::vec3& position);
 
     Camera* getCamera() const { return camera.get(); }
     size_t getObjectCount() const { return objects.size(); }
@@ -71,5 +69,5 @@ public:
     const glm::mat4& getViewMatrix() const { return viewMatrix; }
     const glm::mat4& getProjectionMatrix() const { return projectionMatrix; }
     SpotLight* getSpotLight() const { return spotlight; }
-
+    SceneRenderer& getRenderer() { return renderer; }
 };
